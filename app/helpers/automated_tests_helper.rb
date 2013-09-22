@@ -304,6 +304,20 @@ module AutomatedTestsHelper
     return out, err, status.success?
   end
 
+  def self.execute_cmd(cmd)
+    stdin, stdout, stderr = Open3.popen3(cmd)
+
+    out = stdout.read
+    err = stderr.read
+
+    # Close streams
+    stdin.close
+    stdout.close
+    stderr.close
+
+    return out, err, (!err.nil? && err.empty?)
+  end
+
   def self.process_result(result, grouping_id, assignment_id)
     parser = XML::Parser.string(result)
 
