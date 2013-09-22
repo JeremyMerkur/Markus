@@ -1,5 +1,5 @@
 require 'libxml'
-require 'open3'
+require 'open4'
 
 # Helper methods for Testing Framework forms
 module AutomatedTestsHelper
@@ -288,7 +288,7 @@ module AutomatedTestsHelper
   end
 
   def self.execute_cmd(cmd)
-    stdin, stdout, stderr = Open3.popen3(cmd)
+    pid, stdin, stdout, stderr = Open4.popen4(cmd)
 
     out = stdout.read
     err = stderr.read
@@ -298,7 +298,9 @@ module AutomatedTestsHelper
     stdout.close
     stderr.close
 
-    return out, err, (!err.nil? && err.empty?)
+    ignored, status = Process.waitpid2(pid)
+
+    return out, err, status.success?
   end
 
   def self.process_result(result, grouping_id, assignment_id)
