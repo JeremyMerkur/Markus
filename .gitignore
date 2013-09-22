@@ -2,6 +2,9 @@
 # Ignore nncessary mac files
 .DS_Store
 
+# Ignore nncessary mac files
+.DS_Store
+
 config/database.yml
 config/local_environment_override.rb
 
@@ -13,7 +16,7 @@ doc/app/
 
 # Files created by sass
 .sass-cache
-
+order to obtain the exit status of a process, for more accurate processing), added open4 to the Gemfile, modified .gitignore so it doesn't catch silly things like .DS_Store.
 # Files created by rcov/simplecov
 test/coverage
 test/coverage.data
@@ -47,3 +50,4 @@ lib/repo/test/svn_repos/svn_authz
 
 # RubyMine generated project folder
 .idea
+order to obtain the exit status of a process, for more accurate processing), added open4 to the Gemfile, modified .gitignore so it doesn't catch silly things like .DS_Store.

@@ -9,6 +9,7 @@
 source 'http://rubygems.org'
 
 # Bundler requires these gems in all environments
+gem 'open4'
 gem "resque"
 gem 'open4'
 gem 'rails', '3.1.12'
