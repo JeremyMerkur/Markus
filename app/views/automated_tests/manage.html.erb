@@ -2,8 +2,13 @@
   <%= stylesheet_link_tag("TestFrameworkSettings") %>
 <% end %>
 
+<%= javascript_include_tag "jquery" %>
 <%= javascript_include_tag "create_assignment" %>
 <%= javascript_include_tag "testframework_config" %>
+
+<script type="text/javascript">
+  jQuery.noConflict();
+</script>
 
 <div id="title_bar"><h1><%= I18n.t("automated_tests.automated_tests") %></h1>
 </div>
