@@ -19,7 +19,7 @@ module AutomatedTestsHelper
     
     @repo_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, @group.repo_name)
     export_group_repo(@group, @repo_dir)
-                              
+
     @list_run_scripts = scripts_to_run(@assignment, call_on)
     
     async_test_request(grouping_id, call_on)
@@ -76,7 +76,7 @@ module AutomatedTestsHelper
     end
 
     # sort list_run_scripts using ruby's in place sorting method
-    list_run_scripts.sort_by! {|script| script.seq_num}
+    list_run_scripts.sort! {|s1,s2| s1.seq_num <=> s2.seq_num}
     
     # list_run_scripts should be sorted now. Perform a check here.
     # Take this out if it causes performance issue.
@@ -244,28 +244,28 @@ module AutomatedTestsHelper
     run_dir = MarkusConfigurator.markus_ate_test_run_directory
 
     # Delete the test run directory to remove files from previous test
-    stdout, stderr, status = Open3.capture3("ssh #{server} rm -rf #{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} rm -rf '#{run_dir}'")
+    if !(success)
       return [stderr, false]
     end
 
     # Recreate the test run directory
-    stdout, stderr, status = Open3.capture3("ssh #{server} mkdir #{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} mkdir '#{run_dir}'")
+    if !(success)
       return [stderr, false]
     end
 
     # Securely copy source files, test files and test runner script to run_dir
-    stdout, stderr, status = Open3.capture3("scp -p -r '#{src_dir}'/* #{server}:#{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("scp -p -r '#{src_dir}'/* #{server}:#{run_dir}")
+    if !(success)
       return [stderr, false]
     end
-    stdout, stderr, status = Open3.capture3("scp -p -r '#{test_dir}'/* #{server}:#{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("scp -p -r '#{test_dir}'/* #{server}:#{run_dir}")
+    if !(success)
       return [stderr, false]
     end
-    stdout, stderr, status = Open3.capture3("ssh #{server} cp #{test_runner} #{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} cp #{test_runner} #{run_dir}")
+    if !(success)
       return [stderr, false]
     end
 
@@ -278,13 +278,27 @@ module AutomatedTestsHelper
     
     # Run script
     test_runner_name = File.basename(test_runner)
-    stdout, stderr, status = Open3.capture3("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
+    if !(success)
       return [stderr, false]
     else
       return [stdout, true]
     end
     
+  end
+
+  def self.execute_cmd(cmd)
+    stdin, stdout, stderr = Open3.popen3(cmd)
+
+    out = stdout.read
+    err = stderr.read
+
+    # Close streams
+    stdin.close
+    stdout.close
+    stderr.close
+
+    return out, err, (!err.nil? && err.empty?)
   end
 
   def self.process_result(result, grouping_id, assignment_id)
