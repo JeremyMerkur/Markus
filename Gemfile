@@ -9,6 +9,7 @@
 source 'http://rubygems.org'
 
 # Bundler requires these gems in all environments
+gem 'open4'
 gem "resque"
 gem "rails", "3.0.13"
 gem 'exception_notification'
