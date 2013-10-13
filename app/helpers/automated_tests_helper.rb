@@ -1,5 +1,5 @@
 require 'libxml'
-require 'open3'
+require 'open4'
 
 # Helper methods for Testing Framework forms
 module AutomatedTestsHelper
@@ -77,8 +77,8 @@ module AutomatedTestsHelper
     end
 
     # sort list_run_scripts using ruby's in place sorting method
-    list_run_scripts.sort_by! {|script| script.seq_num}
-
+    list_run_scripts.sort! {|s1,s2| s1.seq_num <=> s2.seq_num}
+    
     # list_run_scripts should be sorted now. Perform a check here.
     # Take this out if it causes performance issue.
     ctr = 0
@@ -106,9 +106,9 @@ module AutomatedTestsHelper
   # belong to the group, and have at least one token.
   def self.has_permission?()
     if @current_user.admin?
-      true
+      return true
     elsif @current_user.ta?
-      true
+      return true
     elsif @current_user.student?
       # Make sure student belongs to this group
       if not @current_user.accepted_groupings.include?(@grouping)
@@ -125,7 +125,7 @@ module AutomatedTestsHelper
       end
       if t.tokens > 0
         t.decrease_tokens
-        true
+        return true
       else
         # TODO: show the error to user instead of raising a runtime error
         raise I18n.t("automated_tests.missing_tokens")
@@ -245,28 +245,28 @@ module AutomatedTestsHelper
     run_dir = MarkusConfigurator.markus_ate_test_run_directory
 
     # Delete the test run directory to remove files from previous test
-    stdout, stderr, status = Open3.capture3("ssh #{server} rm -rf #{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} rm -rf '#{run_dir}'")
+    if !(success)
       return [stderr, false]
     end
 
     # Recreate the test run directory
-    stdout, stderr, status = Open3.capture3("ssh #{server} mkdir #{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} mkdir '#{run_dir}'")
+    if !(success)
       return [stderr, false]
     end
 
     # Securely copy source files, test files and test runner script to run_dir
-    stdout, stderr, status = Open3.capture3("scp -p -r '#{src_dir}'/* #{server}:#{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("scp -p -r '#{src_dir}'/* #{server}:#{run_dir}")
+    if !(success)
       return [stderr, false]
     end
-    stdout, stderr, status = Open3.capture3("scp -p -r '#{test_dir}'/* #{server}:#{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("scp -p -r '#{test_dir}'/* #{server}:#{run_dir}")
+    if !(success)
       return [stderr, false]
     end
-    stdout, stderr, status = Open3.capture3("ssh #{server} cp #{test_runner} #{run_dir}")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} cp #{test_runner} #{run_dir}")
+    if !(success)
       return [stderr, false]
     end
 
@@ -279,13 +279,29 @@ module AutomatedTestsHelper
 
     # Run script
     test_runner_name = File.basename(test_runner)
-    stdout, stderr, status = Open3.capture3("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
-    if !(status.success?)
+    stdout, stderr, success = execute_cmd("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
+    if !(success)
       return [stderr, false]
     else
       return [stdout, true]
     end
 
+  end
+
+  def self.execute_cmd(cmd)
+    pid, stdin, stdout, stderr = Open4.popen4(cmd)
+
+    out = stdout.read
+    err = stderr.read
+
+    # Close streams
+    stdin.close
+    stdout.close
+    stderr.close
+
+    ignored, status = Process.waitpid2(pid)
+
+    return out, err, status.success?
   end
 
   def self.process_result(result, grouping_id, assignment_id)
