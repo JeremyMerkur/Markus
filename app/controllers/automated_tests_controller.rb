@@ -100,11 +100,12 @@ class AutomatedTestsController < ApplicationController
           flash[:failure] = result
         end
 
-        # Redirect back to the student interface
-        redirect_to :action => 'student_interface',
-                    :assignment_id => params[:assignment_id]
       end
     end
+
+    # Redirect back to the student interface
+    redirect_to :action => 'student_interface',
+                :assignment_id => params[:assignment_id]
   end
 
   def run_tests(grouping_id)
