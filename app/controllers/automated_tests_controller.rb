@@ -89,6 +89,10 @@ class AutomatedTestsController < ApplicationController
         else
           flash[:failure] = result
         end
+
+        # Redirect to the student interface without the test runner query param
+        redirect_to :action => 'student_interface',
+                    :assignment_id => params[:assignment_id]
       end
     end
   end
