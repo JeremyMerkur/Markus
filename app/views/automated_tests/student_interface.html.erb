@@ -61,7 +61,7 @@
           <%= I18n.t("automated_tests.need_one_file") %>
           <br />
           <br />
-          <%= link_to I18n.t("automated_tests.run_tests"), {:controller => 'automated_tests', :action => 'student_interface', :id => @assignment.id, :grouping_id => @grouping.id , :revision_number => @revision_number, :run_tests => true}, :class => "button"%>
+          <%= link_to I18n.t("automated_tests.run_tests"), {:controller => 'automated_tests', :action => 'request_test_run', :id => @assignment.id, :grouping_id => @grouping.id , :revision_number => @revision_number}, :class => "button"%>
           <br />
         <% end %>
       <% end %>
