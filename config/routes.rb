@@ -339,6 +339,7 @@ Markus::Application.routes.draw do
   resources :automated_tests do
     member do
       get 'student_interface'
+      get 'request_test_run'
     end
   end
 
