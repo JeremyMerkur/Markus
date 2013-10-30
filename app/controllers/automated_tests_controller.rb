@@ -193,4 +193,14 @@ class AutomatedTestsController < ApplicationController
     end
   end
 
+  def add_new_test_form
+    assignment = Assignment.find(params[:assignment_id])
+    new_test_script = TestScript.new
+    respond_to do |format|
+      format.html {render(:partial => 'test_script_upload',
+                     :locals => {:assignment => assignment, 
+                     :test_script => new_test_script})}
+    end
+  end
+
 end

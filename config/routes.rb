@@ -85,6 +85,7 @@ Markus::Application.routes.draw do
         post 'upload'
         get 'download'
         get 'move_criterion'
+        get 'add_new_test_form'
       end
     end
 

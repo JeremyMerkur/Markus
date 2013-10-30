@@ -41,11 +41,11 @@
 
       <div id="test_scripts">
         <%= f.fields_for :test_scripts, @assignment.test_scripts.sort_by(&:seq_num) do |ts| %>
-          <%  render :partial => 'test_script_upload', :locals => {:test_script => ts.object, :form => f } %>
+          <%  render :partial => 'test_script_upload', :locals => {:test_script => ts.object, :assignment => @assignment} %>
         <% end %>
       </div>
       <p id="test_script_add_link">
-        <%= add_test_script_link t("automated_tests.add_test_script_file_link"), f %>
+        <%= link_to(t("automated_tests.add_test_script_file_link"), add_new_test_form_assignment_automated_tests_path, :remote => true, :id => "add_new_test_script_form") %>
       </p>
   </fieldset>
 

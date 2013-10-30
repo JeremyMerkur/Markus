@@ -6,7 +6,8 @@
 } # this is defined and used to validate input in test_script.rb 
 %>
 
-<%= form.fields_for :test_scripts, test_script do |f| %>
+<%= fields_for assignment do |form|
+  form.fields_for :test_scripts, test_script do |f| %>
 <% saved = !f.object.new_record? %>
 <% hide = saved ? 'style="display:none;"' : '' %>
 
@@ -116,5 +117,6 @@
   <div style="clear:both;"></div>
 </fieldset>
 
-<% end %>
+<%  end 
+  end %>
 </div>

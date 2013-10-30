@@ -113,4 +113,29 @@ jQuery(document).ready(function() {
       jQuery(this).closest(".settings_box").find(":input").attr('disabled', false);
     }
   });
+
+  // Adds an event listener that catches the ajax response to the add_new_test
+  // link/button, cleans it up, and appends it to the test_scripts div
+  jQuery( "#add_new_test_script_form" ).bind("ajax:success", function(e, data, status, xhr) {
+
+      if ($F('is_testing_framework_enabled') != null) {
+        var new_test_script_id = new Date().getTime();
+        var last_seqnum = jQuery('.seqnum').last().val();
+        var new_seqnum = 0;
+        if(last_seqnum) {
+          new_seqnum = 16 + parseFloat(last_seqnum);
+        }
+
+        var new_test_script = jQuery(xhr.responseText.replace(/(attributes_\d+|\[\d+\])/g, new_test_script_id));
+        jQuery('#test_scripts').append(new_test_script);
+
+        new_test_script.find('.seqnum').val(new_seqnum);
+        new_test_script.data('collapsed', false);
+
+        new_test_script.find('.upload_file').change(function () {
+          new_test_script.find('.file_name').text(this.value);
+        })
+      }
+
+    });
 });

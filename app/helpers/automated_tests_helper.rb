@@ -432,40 +432,40 @@ module AutomatedTestsHelper
     end
   end
 
-  def add_test_script_link(name, form)
-    link_to_function name do |page|
-      new_test_script = TestScript.new
-      test_script = render(:partial => 'test_script_upload',
-                         :locals => {:form => form,
-                                     :test_script => new_test_script})
+  # def add_test_script_link(name, form)
+  #   link_to_function name do |page|
+  #     new_test_script = TestScript.new
+  #     test_script = render(:partial => 'test_script_upload',
+  #                        :locals => {:form => form,
+  #                                    :test_script => new_test_script})
 
-      test_script_options = render(:partial => 'test_script_options',
-                         :locals => {:form => form,
-                                     :test_script => new_test_script })
-      page << %{
-        if ($F('is_testing_framework_enabled') != null) {
-          var new_test_script_id = new Date().getTime();
-          var last_seqnum = jQuery('.seqnum').last().val();
-          var new_seqnum = 0;
-          if(last_seqnum) {
-            new_seqnum = 16 + parseFloat(last_seqnum);
-          }
+  #     test_script_options = render(:partial => 'test_script_options',
+  #                        :locals => {:form => form,
+  #                                    :test_script => new_test_script })
+  #     page << %{
+  #       if ($F('is_testing_framework_enabled') != null) {
+  #         var new_test_script_id = new Date().getTime();
+  #         var last_seqnum = jQuery('.seqnum').last().val();
+  #         var new_seqnum = 0;
+  #         if(last_seqnum) {
+  #           new_seqnum = 16 + parseFloat(last_seqnum);
+  #         }
 
-          var new_test_script = jQuery("#{ escape_javascript test_script}".replace(/(attributes_\\d+|\\[\\d+\\])/g, new_test_script_id));
-          jQuery('#test_scripts').append(new_test_script);
+  #         var new_test_script = jQuery("#{ escape_javascript test_script}".replace(/(attributes_\\d+|\\[\\d+\\])/g, new_test_script_id));
+  #         jQuery('#test_scripts').append(new_test_script);
 
-          new_test_script.find('.seqnum').val(new_seqnum);
-          new_test_script.data('collapsed', false);
+  #         new_test_script.find('.seqnum').val(new_seqnum);
+  #         new_test_script.data('collapsed', false);
 
-          new_test_script.find('.upload_file').change(function () {
-            new_test_script.find('.file_name').text(this.value);
-          })
-        } else {
-          alert("#{I18n.t("automated_tests.add_test_script_file_alert")}");
-        }
-      }
-    end
-  end
+  #         new_test_script.find('.upload_file').change(function () {
+  #           new_test_script.find('.file_name').text(this.value);
+  #         })
+  #       } else {
+  #         alert("#{I18n.t("automated_tests.add_test_script_file_alert")}");
+  #       }
+  #     }
+  #   end
+  # end
 
   def add_test_support_file_link(name, form)
     link_to_function name do |page|
@@ -606,5 +606,21 @@ module AutomatedTestsHelper
 
     return assignment
   end
+
+
+  # # Helper that stores the form used in the lastest page render so it can be called
+  # # in ajax requests to expand the form
+  # def form_init(form)
+  #   @form = form
+  # end
+
+  # # Helper that renders a new test script form
+  # # @form should have been previously set
+  # def add_new_test_form_helper(assignment)
+  #     new_test_script = TestScript.new
+  #     render(:partial => 'test_script_upload',
+  #                        :locals => {:assignment => assignment, 
+  #                         :test_script => new_test_script})
+  # end
 
 end
