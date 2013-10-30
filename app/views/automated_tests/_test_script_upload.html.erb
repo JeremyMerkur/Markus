@@ -6,7 +6,8 @@
 } # this is defined and used to validate input in test_script.rb 
 %>
 
-<%= fields_for assignment do |form|
+<%= fields_for assignment do |f2|
+  form = f2 unless form
   form.fields_for :test_scripts, test_script do |f| %>
 <% saved = !f.object.new_record? %>
 <% hide = saved ? 'style="display:none;"' : '' %>

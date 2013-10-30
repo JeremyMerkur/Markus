@@ -41,7 +41,7 @@
 
       <div id="test_scripts">
         <%= f.fields_for :test_scripts, @assignment.test_scripts.sort_by(&:seq_num) do |ts| %>
-          <%  render :partial => 'test_script_upload', :locals => {:test_script => ts.object, :assignment => @assignment} %>
+          <%  render :partial => 'test_script_upload', :locals => {:test_script => ts.object, :form => f, :assignment => @assignment} %>
         <% end %>
       </div>
       <p id="test_script_add_link">
