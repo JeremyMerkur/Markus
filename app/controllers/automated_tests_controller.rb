@@ -80,17 +80,32 @@ class AutomatedTestsController < ApplicationController
       if @token
         @token.reassign_tokens_if_new_day()
       end
+    end
+  end
 
-      # For running tests
-      if params[:run_tests] && ((@token && @token.tokens > 0) || @assignment.unlimited_tokens)
+  def request_test_run
+    @assignment = Assignment.find(params[:id])
+    @student = current_user
+    @grouping = @student.accepted_grouping_for(@assignment.id)
+
+    if !@grouping.nil?
+      @token = Token.find_by_grouping_id(@grouping.id)
+
+      # If the group has tokens to use, run a test
+      if (@token && @token.tokens > 0) || @assignment.unlimited_tokens
         result = run_tests(@grouping.id)
-        if result == nil
+        if result.nil?
           flash[:notice] = I18n.t("automated_tests.tests_running")
         else
           flash[:failure] = result
         end
+
       end
     end
+
+    # Redirect back to the student interface
+    redirect_to :action => 'student_interface',
+                :assignment_id => params[:assignment_id]
   end
 
   def run_tests(grouping_id)
