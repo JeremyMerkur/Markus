@@ -19,7 +19,7 @@ gem 'will_paginate'
 gem 'fastercsv', :platforms => :ruby_18
 gem 'routing-filter'
 gem 'dynamic_form'
-gem "libxml-ruby" # xml parser library to parse test results
+gem "libxml-ruby", '2.6.0' # xml parser library to parse test results
 # The 'exception_notification' gem version 4 is not compatible with
 # Rails 3.0.x
 gem 'exception_notification', '<4.0'
