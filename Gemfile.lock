@@ -188,7 +188,7 @@ DEPENDENCIES
   i18n
   jquery-rails
   json
-  libxml-ruby
+  libxml-ruby (= 2.6.0)
   machinist (< 2)
   mocha
   mysql2 (>= 0.3)
