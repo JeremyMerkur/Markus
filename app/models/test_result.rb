@@ -24,7 +24,6 @@ class TestResult < ActiveRecord::Base
   belongs_to :grouping
   belongs_to :test_script_result
 
-  validates_presence_of :submission # we require an associated submission
   validates_presence_of :grouping # we require an associated grouping
   validates_associated  :grouping  # grouping need to be valid
 
