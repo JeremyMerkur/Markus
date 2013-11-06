@@ -6,8 +6,6 @@ class TestResultTest < ActiveSupport::TestCase
   should belong_to :submission
   should belong_to :test_script
 
-  should validate_presence_of :submission
-
   should validate_presence_of :test_script
   should validate_presence_of :name
   should validate_presence_of :completion_status
@@ -80,12 +78,6 @@ class TestResultTest < ActiveSupport::TestCase
                                     :input_description => '',
                                     :actual_output     => '   ',
                                     :expected_output   => 'This is the expected output')
-    end
-
-    should 'return false when there is no submission associated' do
-      @testresult.submission = nil
-      @testresult.save
-      assert !@testresult.valid?, 'test result expected to be invalid when there is no submission associated'
     end
 
     should 'return false when test script is nil' do
