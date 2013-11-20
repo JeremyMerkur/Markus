@@ -3,13 +3,69 @@ require 'helpers/ensure_config_helper.rb'
 
 class AutomatedTestsController < ApplicationController
   include AutomatedTestsHelper
+  include PaginationHelper
 
   before_filter      :authorize_only_for_admin,
                      :only => [:manage, :update, :download]
   before_filter      :authorize_for_user,
                      :only => [:index]
 
+
   # This is not being used right now. It was the calling interface to
+  S_TABLE_PARAMS = {
+    :model => Grouping,
+    :per_pages => [15, 30, 50, 100, 150, 500, 1000],
+    :filters => {
+      'none' => {
+        :display => I18n.t("browse_submissions.show_all"),
+        :proc => lambda { |params, to_include|
+          return params[:assignment].groupings.all(:include => to_include)}},
+          'unmarked' => {
+            :display => I18n.t("browse_submissions.show_unmarked"),
+            :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| !g.has_submission? || (g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:unmarked]) } }},
+            'partial' => {
+              :display => I18n.t("browse_submissions.show_partial"),
+              :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:partial] } }},
+              'complete' => {
+                :display => I18n.t("browse_submissions.show_complete"),
+                :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:complete] } }},
+                'released' => {
+                  :display => I18n.t("browse_submissions.show_released"),
+                  :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.released_to_students} }},
+                  'assigned' => {
+                    :display => I18n.t("browse_submissions.show_assigned_to_me"),
+                    :proc => lambda { |params, to_include| return params[:assignment].ta_memberships.find_all_by_user_id(params[:user_id], :include => [:grouping => to_include]).collect{|m| m.grouping} }}
+                    },
+                    :sorts => {
+                      'group_name' => lambda { |a,b| a.group.group_name.downcase <=> b.group.group_name.downcase},
+                      'repo_name' => lambda { |a,b| a.group.repo_name.downcase <=> b.group.repo_name.downcase },
+                      'revision_timestamp' => lambda { |a,b|
+                        return -1 if !a.has_submission?
+                        return 1 if !b.has_submission?
+                        return a.current_submission_used.revision_timestamp <=> b.current_submission_used.revision_timestamp
+                        },
+                        'marking_state' => lambda { |a,b|
+                          return -1 if !a.has_submission?
+                          return 1 if !b.has_submission?
+                          return a.current_submission_used.result.marking_state <=> b.current_submission_used.result.marking_state
+                          },
+                          'total_mark' => lambda { |a,b|
+                            return -1 if !a.has_submission?
+                            return 1 if !b.has_submission?
+                            return a.current_submission_used.result.total_mark <=> b.current_submission_used.result.total_mark
+                            },
+                            'grace_credits_used' => lambda { |a,b|
+                              return a.grace_period_deduction_single <=> b.grace_period_deduction_single
+                              },
+                              'section' => lambda { |a,b|
+                                return -1 if !a.section
+                                return 1 if !b.section
+                                return a.section <=> b.section
+                              }
+                            }
+                          }
+                     
+  # This is not being used right now. It was the calling interface to 
   # request a test run, however, now you can just call
   # AutomatedTestsHelper.request_a_test_run to send a test request.
   def index
@@ -61,6 +117,131 @@ class AutomatedTestsController < ApplicationController
   # Manage is called when the Automated Test UI is loaded
   def manage
     @assignment = Assignment.find(params[:assignment_id])
+  end
+
+  # Manage is called when the Automated Test UI is loaded
+  def tokens
+    if current_user.ta?
+      params[:filter] = 'assigned'
+    else
+      if params[:filter] == nil or params[:filter].blank?
+        params[:filter] = 'none'
+      end
+    end
+    
+    @assignment = Assignment.find(params[:assignment_id])
+    
+    @c_per_page = current_user.id.to_s + "_" + @assignment.id.to_s + "_per_page"
+    if !params[:per_page].blank?
+       cookies[@c_per_page] = params[:per_page] 
+    end 
+
+    @c_sort_by = current_user.id.to_s + "_" + @assignment.id.to_s + "_sort_by"
+    if !params[:sort_by].blank?
+       cookies[@c_sort_by] = params[:sort_by]
+    else
+       params[:sort_by] = 'group_name' 
+    end
+ 
+    @groupings, @groupings_total = handle_paginate_event(
+      S_TABLE_PARAMS,                                     # the data structure to handle filtering and sorting
+        { :assignment => @assignment,                     # the assignment to filter by
+          :user_id => current_user.id},                   # the submissions accessable by the current user
+      params)                                             # additional parameters that affect things like sorting
+
+    #Eager load all data only for those groupings that will be displayed
+    sorted_groupings = @groupings
+    @groupings = Grouping.find(:all, :conditions => {:id => sorted_groupings},
+      :include => [:assignment, :group, :grace_period_deductions,
+        {:current_submission_used => :result},
+        {:accepted_student_memberships => :user}])
+
+    #re-sort @groupings by the previous order, because eager loading query
+    #messed up the grouping order
+    @groupings = sorted_groupings.map do |sorted_grouping|
+      @groupings.detect do |unsorted_grouping|
+        unsorted_grouping == sorted_grouping
+      end
+    end
+    
+    if cookies[@c_per_page].blank?
+       cookies[@c_per_page] = params[:per_page]
+    end
+    
+    if cookies[@c_sort_by].blank?
+       cookies[@c_sort_by] = params[:sort_by]
+    end
+ 
+    @current_page = params[:page].to_i()
+    @per_page = cookies[@c_per_page] 
+    @filters = get_filters(S_TABLE_PARAMS)
+    @per_pages = S_TABLE_PARAMS[:per_pages]
+    @desc = params[:desc]
+    @filter = params[:filter]
+    @sort_by = cookies[@c_sort_by]
+  end
+  
+  def update_tokens
+ 
+    return unless request.post?
+    assignment = Assignment.find(params[:assignment_id])
+    errors = []
+    groupings = []
+    if params[:ap_select_full] == 'true'
+      # We should have been passed a filter
+      if params[:filter].blank?
+        raise I18n.t("student.submission.expect_filter")
+      end
+      # Get all Groupings for this filter
+      groupings = S_TABLE_PARAMS[:filters][params[:filter]][:proc].call({:assignment => assignment, :user_id => current_user.id}, {})
+    else
+      # User selected particular Grouping IDs
+      if params[:groupings].nil?
+        errors.push(I18n.t('results.must_select_a_group'))
+      else
+        groupings = assignment.groupings.find(params[:groupings])
+      end
+    end
+    
+    groupings_test = params[:groupings]
+    groupings_test.each do |g1|
+      puts "This is the groupings #{g1} done \n\n\n"
+    end
+    
+    log_message = ""
+    # ATE_SIMPLE_UI: this is temporary 
+    # After this action successfully done, it flashes the message "# of results has successfully changed"
+    # which here, running test is not changing anything. Please see the user table UI for how to properly
+    # do bulk action to table rows.
+    if !params[:run_test].nil?
+      
+      groupings_test = params[:groupings]
+      groupings_test.each do |g1|
+        puts "This is the groupings #{g1} done \n\n\n"
+        changed = run_tests(g1)
+        log_message = "Run test for assignment '#{assignment.short_identifier}', ID: '" +
+                      "#{assignment.id}' (For #{changed} groups)."
+      end
+    # ATE_SIMPLE_UI end
+    end
+
+
+    if !groupings.empty?
+      assignment.set_results_average
+    end
+
+    #if changed > 0
+     # flash[:success] = I18n.t('results.successfully_changed', {:changed => changed})
+     # m_logger = MarkusLogger.instance
+     # m_logger.log(log_message)
+    #end
+    flash[:errors] = errors
+
+    redirect_to :action => 'tokens',
+                :id => params[:id],
+                :per_page => params[:per_page],
+                :filter   => params[:filter],
+                :sort_by  => params[:sort_by] 
   end
 
   def student_interface

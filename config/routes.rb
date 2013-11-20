@@ -85,6 +85,8 @@ Markus::Application.routes.draw do
         post 'upload'
         get 'download'
         get 'move_criterion'
+        get 'tokens'
+        post 'update_tokens'
       end
     end
 
