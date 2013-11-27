@@ -69,7 +69,11 @@
   <% end %>
   
   <td class="marking_state">
-    <%= test_script_results.created_at.strftime("%F %R") %>
+		<% if test_script_results.nil? || test_script_results.created_at.nil?%>
+         -
+        <% else %>
+    		<%= test_script_results.created_at.strftime("%F %R") %>
+		<%end%>
   </td>
   <td>
     <% if @assignment.unlimited_tokens %>
@@ -80,7 +84,12 @@
       <% end %>
   </td>
   <td>
-	<%= test_script_results.marks_earned %>
+	<% if test_script_results.nil? || test_script_results.marks_earned.nil?%>
+     -
+    <% else %>
+		<%= test_script_results.marks_earned %>
+	<%end%>
+	
   </td>
 
   <%# We don't need to display the section of the group unless it is a section group 
@@ -92,7 +101,11 @@
   <% end %>
   <td>
 	<div id="test_results" class="sub_block">
-		  <ul>
+		<% if test_script_results.nil? || test_script_results.marks_earned.nil?%>
+	     	No tests run yet.
+	    <% else %>
+
+			<ul>
 		  	<% test_script = TestScript.find(test_script_results.test_script_id) %>
 		  	<li>
 		  	  <%= I18n.t("automated_tests.script_name") %> <%= test_script.script_name %>
@@ -137,6 +150,7 @@
 		  	  </ul>
 		  	</li>
 		  </ul>
+		<%end%>
 		</div>
   </td>
 </tr>

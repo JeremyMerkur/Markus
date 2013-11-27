@@ -1,5 +1,6 @@
 <tbody id="submissions">
   <% groupings.each do |grouping| %>
-    <%= render :partial => 'automated_tests/token_table_row/table_row', :locals => {:grouping => grouping, :assignment => assignment} %>
+	<%= render :partial => 'automated_tests/token_table_row/table_row', :locals => {:grouping => grouping, :assignment => assignment} %>
+
   <% end %>
 <tbody>

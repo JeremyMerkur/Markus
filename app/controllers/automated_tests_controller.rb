@@ -9,61 +9,60 @@ class AutomatedTestsController < ApplicationController
                      :only => [:manage, :update, :download]
   before_filter      :authorize_for_user,
                      :only => [:index]
+                     
+                     S_TABLE_PARAMS = {
+                       :model => Grouping,
+                       :per_pages => [15, 30, 50, 100, 150, 500, 1000],
+                       :filters => {
+                         'none' => {
+                           :display => I18n.t("tokens.show_all"),
+                           :proc => lambda { |params, to_include|
+                             return params[:assignment].groupings.all(:include => to_include)}},
+                         'unmarked' => {
+                           :display => I18n.t("tokens.show_unmarked"),
+                           :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| !g.has_submission? || (g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:unmarked]) } }},
+                         'partial' => {
+                           :display => I18n.t("tokens.show_partial"),
+                           :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:partial] } }},
+                         'complete' => {
+                           :display => I18n.t("tokens.show_complete"),
+                           :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:complete] } }},
+                         'released' => {
+                           :display => I18n.t("tokens.show_released"),
+                           :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.released_to_students} }},
+                         'assigned' => {
+                           :display => I18n.t("tokens.show_assigned_to_me"),
+                           :proc => lambda { |params, to_include| return params[:assignment].ta_memberships.find_all_by_user_id(params[:user_id], :include => [:grouping => to_include]).collect{|m| m.grouping} }}
+                       },
+                       :sorts => {
+                         'group_name' => lambda { |a,b| a.group.group_name.downcase <=> b.group.group_name.downcase},
+                         'repo_name' => lambda { |a,b| a.group.repo_name.downcase <=> b.group.repo_name.downcase },
+                         'revision_timestamp' => lambda { |a,b|
+                           return -1 if !a.has_submission?
+                           return 1 if !b.has_submission?
+                           return a.current_submission_used.revision_timestamp <=> b.current_submission_used.revision_timestamp
+                         },
+                         'marking_state' => lambda { |a,b|
+                           return -1 if !a.has_submission?
+                           return 1 if !b.has_submission?
+                           return a.current_submission_used.result.marking_state <=> b.current_submission_used.result.marking_state
+                         },
+                         'total_mark' => lambda { |a,b|
+                           return -1 if !a.has_submission?
+                           return 1 if !b.has_submission?
+                           return a.current_submission_used.result.total_mark <=> b.current_submission_used.result.total_mark
+                         },
+                         'grace_credits_used' => lambda { |a,b|
+                           return a.grace_period_deduction_single <=> b.grace_period_deduction_single
+                         },
+                         'section' => lambda { |a,b|
+                           return -1 if !a.section
+                           return 1 if !b.section
+                           return a.section <=> b.section
+                         }
+                       }
+                     }
 
-
-  # This is not being used right now. It was the calling interface to
-  S_TABLE_PARAMS = {
-    :model => Grouping,
-    :per_pages => [15, 30, 50, 100, 150, 500, 1000],
-    :filters => {
-      'none' => {
-        :display => I18n.t("browse_submissions.show_all"),
-        :proc => lambda { |params, to_include|
-          return params[:assignment].groupings.all(:include => to_include)}},
-          'unmarked' => {
-            :display => I18n.t("browse_submissions.show_unmarked"),
-            :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| !g.has_submission? || (g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:unmarked]) } }},
-            'partial' => {
-              :display => I18n.t("browse_submissions.show_partial"),
-              :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:partial] } }},
-              'complete' => {
-                :display => I18n.t("browse_submissions.show_complete"),
-                :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.marking_state == Result::MARKING_STATES[:complete] } }},
-                'released' => {
-                  :display => I18n.t("browse_submissions.show_released"),
-                  :proc => lambda { |params, to_include| return params[:assignment].groupings.all(:include => [to_include]).select{|g| g.has_submission? && g.current_submission_used.result.released_to_students} }},
-                  'assigned' => {
-                    :display => I18n.t("browse_submissions.show_assigned_to_me"),
-                    :proc => lambda { |params, to_include| return params[:assignment].ta_memberships.find_all_by_user_id(params[:user_id], :include => [:grouping => to_include]).collect{|m| m.grouping} }}
-                    },
-                    :sorts => {
-                      'group_name' => lambda { |a,b| a.group.group_name.downcase <=> b.group.group_name.downcase},
-                      'repo_name' => lambda { |a,b| a.group.repo_name.downcase <=> b.group.repo_name.downcase },
-                      'revision_timestamp' => lambda { |a,b|
-                        return -1 if !a.has_submission?
-                        return 1 if !b.has_submission?
-                        return a.current_submission_used.revision_timestamp <=> b.current_submission_used.revision_timestamp
-                        },
-                        'marking_state' => lambda { |a,b|
-                          return -1 if !a.has_submission?
-                          return 1 if !b.has_submission?
-                          return a.current_submission_used.result.marking_state <=> b.current_submission_used.result.marking_state
-                          },
-                          'total_mark' => lambda { |a,b|
-                            return -1 if !a.has_submission?
-                            return 1 if !b.has_submission?
-                            return a.current_submission_used.result.total_mark <=> b.current_submission_used.result.total_mark
-                            },
-                            'grace_credits_used' => lambda { |a,b|
-                              return a.grace_period_deduction_single <=> b.grace_period_deduction_single
-                              },
-                              'section' => lambda { |a,b|
-                                return -1 if !a.section
-                                return 1 if !b.section
-                                return a.section <=> b.section
-                              }
-                            }
-                          }
                      
   # This is not being used right now. It was the calling interface to 
   # request a test run, however, now you can just call
