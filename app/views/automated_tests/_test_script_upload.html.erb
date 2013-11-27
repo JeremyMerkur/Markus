@@ -1,10 +1,4 @@
 <div class="test_script">
-<% display_options = { 
-  I18n.t("automated_tests.script_option.display_option.display_after_submission") => "display_after_submission", 
-  I18n.t("automated_tests.script_option.display_option.display_after_collection") => "display_after_collection",
-  I18n.t("automated_tests.script_option.display_option.do_not_display") => "do_not_display"
-} # this is defined and used to validate input in test_script.rb 
-%>
 
 <%= form.fields_for :test_scripts, test_script do |f| %>
 <% saved = !f.object.new_record? %>
@@ -45,37 +39,6 @@
       <%= raw maxmarks_section %>
     <% end %>
 
-    <div <%= raw hide %>>
-      <%= f.label :display_settings, t('automated_tests.script_option.display_settings') %> <br/>
-      <ul>
-        <li>
-          <%= f.label :display_description, t('automated_tests.script_option.display_description') %>
-          <%= f.select :display_description, options_for_select(display_options, f.object.display_description) %>
-        </li>
-        <li>
-          <%= f.label :display_run_status, t('automated_tests.script_option.display_run_status') %>
-          <%= f.select :display_run_status, options_for_select(display_options, f.object.display_run_status) %>
-        </li>
-        <li>
-          <%= f.label :display_marks_earned, t('automated_tests.script_option.display_marks_earned') %>
-          <%= f.select :display_marks_earned, options_for_select(display_options, f.object.display_marks_earned) %>
-        </li>
-        <li>
-          <%= f.label :display_input, t('automated_tests.script_option.display_input') %>
-          <%= f.select :display_input, options_for_select(display_options, f.object.display_input) %>
-        </li>
-        <li>
-          <%= f.label :display_expected_output, t('automated_tests.script_option.display_expected_output') %>
-          <%= f.select :display_expected_output, options_for_select(display_options, f.object.display_expected_output) %>
-        </li>
-        <li>
-          <%= f.label :display_actual_output, t('automated_tests.script_option.display_actual_output') %>
-          <%= f.select :display_actual_output, options_for_select(display_options, f.object.display_actual_output) %>
-        </li>
-      </ul>
-    </div>
-  </div>
-
   <div class="settings_right_side">
     <% if saved %>
       <%= raw maxmarks_section %>
@@ -85,6 +48,16 @@
       <%= f.label :script_name, (saved ? t('automated_tests.replace') : t('automated_tests.upload_required').html_safe) %>
       <%= f.file_field :script_name, :size=>"30", :class => 'upload_file' %><br/>
 
+      <%= f.label :run_on_request, t("automated_tests.script_option.run_on_request") %>
+      <%= f.check_box :run_on_request, :value => f.object.run_on_request %><br/>
+    
+      <%= f.label :run_on_submission, t("automated_tests.script_option.run_on_submission") %>
+      <%= f.check_box :run_on_submission, :value => f.object.run_on_submission %><br/>
+
+      <%= f.label :halts_testing, t("automated_tests.script_option.halts_testing") %>
+      <%= f.check_box :halts_testing, :value => f.object.halts_testing %>
+
+      <br/>
       <% if saved %>
         <span class="label">
           <%= link_to(t(:download),
@@ -100,17 +73,6 @@
       <% else %>
         <%= label_tag "remove", link_to_function(t('automated_tests.remove_file'), "removeNewTestScript(this);") %>
       <% end %>
-
-      <br/><br/>
-
-      <%= f.label :run_on_request, t("automated_tests.script_option.run_on_request") %>
-      <%= f.check_box :run_on_request, :value => f.object.run_on_request %><br/>
-    
-      <%= f.label :run_on_submission, t("automated_tests.script_option.run_on_submission") %>
-      <%= f.check_box :run_on_submission, :value => f.object.run_on_submission %><br/>
-
-      <%= f.label :halts_testing, t("automated_tests.script_option.halts_testing") %>
-      <%= f.check_box :halts_testing, :value => f.object.halts_testing %>
     </div>
   </div>
   <div style="clear:both;"></div>
