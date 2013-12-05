@@ -261,9 +261,17 @@ module AutomatedTestsHelper
     if !(success)
       return [stderr, false]
     end
-    stdout, stderr, success = execute_cmd("scp -p -r '#{test_dir}'/* #{server}:#{run_dir}")
-    if !(success)
-      return [stderr, false]
+    # Since tests now consist of potentially multiple files, all of those have to
+    # copied up to the test server, in a format that the test runner can understand
+    assignment.test_scripts.each do |ts|
+      stdout, stderr, success = execute_cmd("ssh #{server} mkdir '#{run_dir}/#{ts.script_name}_folder'")
+      if !(success)
+        return [stderr, false]
+      end
+      stdout, stderr, success = execute_cmd("scp -p -r '#{test_dir}/#{ts.id.to_s}'/* #{server}:#{run_dir}/#{ts.script_name}_folder")
+      if !(success)
+        return [stderr, false]
+      end
     end
     stdout, stderr, success = execute_cmd("ssh #{server} cp #{test_runner} #{run_dir}")
     if !(success)
@@ -279,6 +287,10 @@ module AutomatedTestsHelper
 
     # Run script
     test_runner_name = File.basename(test_runner)
+    log_file = File.new("/Users/Deus/Desktop/Markus_Log.txt", "a+")
+    # log_file.puts("test\n")
+    log_file.puts("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
+    log_file.close
     stdout, stderr, success = execute_cmd("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
     if !(success)
       return [stderr, false]
@@ -523,10 +535,10 @@ module AutomatedTestsHelper
         if tfile['file_name'].respond_to?(:original_filename)
           fname = tfile['file_name'].original_filename
           # If this is a duplicate file name, raise error and return
-          if filename_array.include?(fname)
+          if file_name_array.include?(fname)
             raise I18n.t('automated_tests.duplicate_filename') + fname
           else
-            filename_array << fname
+            file_name_array << fname
           end
         end
       end
@@ -606,21 +618,5 @@ module AutomatedTestsHelper
 
     return assignment
   end
-
-
-  # # Helper that stores the form used in the lastest page render so it can be called
-  # # in ajax requests to expand the form
-  # def form_init(form)
-  #   @form = form
-  # end
-
-  # # Helper that renders a new test script form
-  # # @form should have been previously set
-  # def add_new_test_form_helper(assignment)
-  #     new_test_script = TestScript.new
-  #     render(:partial => 'test_script_upload',
-  #                        :locals => {:assignment => assignment, 
-  #                         :test_script => new_test_script})
-  # end
 
 end

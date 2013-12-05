@@ -1,11 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'timeout'
+require 'ftools'
 
 $LAST_ARG = 0
 $HALT_ON_FAIL = false
 $HAS_FAILED = false
-$TIME_LIMIT = 600     #the maximum amount of time a given test suite can run for, in seconds
+$TIME_LIMIT = 30    #the maximum amount of time a given test suite can run for, in seconds
 
 #
 # given the filename, and suite output, it formats and returns the results
@@ -46,6 +47,12 @@ end
 # 
 def runTest(fileName)
   begin
+    # Copy all the contents of the test script folder to the current directory
+    temp_files = []
+    Dir.glob("#{fileName}_folder/*") do |f|
+      File.copy(f, File.basename(f))
+      temp_files.push(File.basename(f))
+    end
     # basic timeout check
     # if the test_suite runs for over N seconds, it times out
     Timeout.timeout($TIME_LIMIT) do
@@ -63,11 +70,21 @@ def runTest(fileName)
              "<actual>MarkUs - Timeout</actual>\n" \
              "<status>Error</status>\n" \
              "</test>"
+
+    # Clean up the copied files
+    temp_files.each do |tf|
+      File.delete(tf)
+    end
+
     # then just parse and return that error message
     return parseOutput(fileName, output, $?)
   end
     
-  
+  # Clean up the copied files
+  temp_files.each do |tf|
+    File.delete(tf)
+  end
+
   # otherwise, iterate over the pipe's data, one line at a time
   # and append that to the output
   output = ""
@@ -125,7 +142,8 @@ end
 def checkFiles(files)
   files.each {
     |file|
-    if  !File.exist?(file) then
+    # Each file is contained in
+    if  !File.exist?("#{file}_folder/#{file}") then
       return false
     end
   }
@@ -139,7 +157,7 @@ end
 def modFiles(files)
   files.each{
     |file|
-    f = File.new(file)
+    f = File.new("#{file}_folder/#{file}")
     f.chmod(0766)
   }
 end

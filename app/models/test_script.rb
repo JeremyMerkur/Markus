@@ -45,6 +45,7 @@ class TestScript < ActiveRecord::Base
   belongs_to :assignment
   has_many :test_results, :dependent => :delete_all
   has_many :test_script_results, :dependent => :delete_all
+  has_many :test_helpers, :dependent => :destroy
   
   # Run sanitize_filename before saving to the database
   before_save :sanitize_filename
@@ -56,7 +57,7 @@ class TestScript < ActiveRecord::Base
   after_save :write_file
   
   # Run delete_file method after removal from db
-  after_destroy :delete_file
+  after_destroy :delete_file_and_folder
 
   validates_presence_of :assignment
   validates_associated :assignment
@@ -150,10 +151,11 @@ class TestScript < ActiveRecord::Base
     if @file_path
       name = self.script_name
       test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-
+      # Create the directory if it doesn't already exists
+      dir_path = File.join(test_dir, self.id.to_s)
+      Dir.mkdir(dir_path) unless File.directory?(dir_path)
       # Create the file path
-      path = File.join(test_dir, name)
-
+      path = File.join(test_dir, self.id.to_s, name)
       # Read and write the file (overwrite if it exists)
       File.open(path, "w+") { |f| f.write(@file_path.read) }
     end
@@ -164,10 +166,18 @@ class TestScript < ActiveRecord::Base
     test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
 
     # Delete file if it exists
-    path = File.join(test_dir, self.script_name)
+    path = File.join(test_dir, self.id.to_s, self.script_name)
     if File.exist?(path)
       File.delete(path)
     end
+  end
+
+  def delete_file_and_folder
+    self.test_helpers.each { |th| th.destroy }
+    self.delete_file
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+    dir_path = File.join(test_dir, self.id.to_s)
+    Dir.delete(dir_path) if File.directory?(dir_path)
   end
 
 end

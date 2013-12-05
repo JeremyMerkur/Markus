@@ -208,14 +208,157 @@ class AutomatedTestsController < ApplicationController
     end
   end
 
+  # Called by the "Add Test Script File" button, renders a form block
+  # for the user to enter information into
   def add_new_test_form
-    assignment = Assignment.find(params[:assignment_id])
+    # assignment = Assignment.find(params[:assignment_id])
     new_test_script = TestScript.new
     respond_to do |format|
       format.html {render(:partial => 'test_script_upload',
-                     :locals => {:assignment => assignment, 
-                     :test_script => new_test_script})}
+                     :locals => {:test_script => new_test_script,
+                      :is_new => 'true'})}
     end
   end
 
+  # Called by the "Add Test Support File" button
+  def add_new_test_support_form
+    assignment = Assignment.find(params[:assignment_id])
+    new_test_support = TestSupportFile.new
+    respond_to do |format|
+      format.html {render(:partial => 'test_support_file_upload',
+                     :locals => {:assignment => assignment, 
+                       :test_support_file => new_test_support,
+                       :is_new => "true"})}
+    end
+  end
+
+  def add_new_test_helper_form
+      assignment = Assignment.find(params[:assignment_id])
+      test_script = TestScript.find(params[:test_script_id])
+      new_test_helper = TestHelper.new
+      respond_to do |format|
+        format.html {render(:partial => 'test_helper_file_upload',
+                      :locals => {
+                        :test_script => test_script,
+                        :test_helper_file => new_test_helper,
+                        :is_new => "true"})}
+      end
+    end
+
+  # Controller action to handle the updating and creation of new
+  # test script elements in the database
+  def update_test
+    assignment = Assignment.find(params[:assignment_id])
+    if params[:is_new] == 'true'
+      # make new test
+      # test_params = params[:test_script].clone.delete("script_name")
+      test = assignment.test_scripts.build(params[:test_script])
+      if (params[:FILE_UPLOAD])
+        test.script_name = params[:FILE_UPLOAD]
+      end
+    else
+      # find old test
+      test = TestScript.find(params[:test_id])
+      # test_params = params[:test_script].clone.delete("script_name")
+      test.attributes=(params[:test_script])
+      if (params[:FILE_UPLOAD])
+        test.script_name = params[:FILE_UPLOAD]
+      end
+    end
+
+    respond_to do |format|
+      if test.save()
+        format.html { render(:partial => 'test_upload_success',
+            :locals => {:test_id => test.id}) }
+      else
+        format.html { render(:partial => 'test_upload_error',
+            :locals => {:errors => test.errors.full_messages() }) }
+      end
+    end
+  end
+
+  # Controller action to delete a test script
+  def remove_test
+    TestScript.destroy(params[:test_id])
+    respond_to do |format|
+      format.html { render(:text => 'Success') }
+    end
+  end
+
+  # Controller action to handle the updating and creation of new
+  # test support files in the database
+  def update_support
+    assignment = Assignment.find(params[:assignment_id])
+    if params[:is_new] == 'true'
+      # make new support
+      test = assignment.test_support_files.build(params[:test_support_file])
+      if (params[:FILE_UPLOAD])
+        test.file_name = params[:FILE_UPLOAD]
+      end
+    else
+      # find old test
+      test = TestSupportFile.find(params[:support_id])
+      test.attributes=(params[:test_support_file])
+      if (params[:FILE_UPLOAD])
+        test.file_name = params[:FILE_UPLOAD]
+      end
+    end
+
+    respond_to do |format|
+      if test.save()
+        format.html { render(:partial => 'test_upload_success',
+            :locals => {:test_id => test.id}) }
+      else
+        format.html { render(:partial => 'test_upload_error',
+            :locals => {:errors => test.errors.full_messages() }) }
+      end
+    end
+  end
+
+  # Controller action to delete a test support file
+  def remove_support
+    TestSupportFile.destroy(params[:support_id])
+    respond_to do |format|
+      format.html { render(:text => 'Success') }
+    end
+  end
+
+  # Controller action to handle the updating and creation of new
+  # test helper files in the database
+  def update_helper
+    # assignment = Assignment.find(params[:assignment_id])
+    test_script = TestScript.find(params[:test_script_id])
+    if params[:is_new] == 'true'
+      # make new support
+      helper = test_script.test_helpers.build()
+      if (params[:FILE_UPLOAD])
+        helper.file_name = params[:FILE_UPLOAD]
+      end
+    else
+      # find old test
+      helper = TestHelper.find(params[:helper_id])
+      # helper.attributes=(params[:test_support_file])
+      if (params[:FILE_UPLOAD])
+        helper.file_name = params[:FILE_UPLOAD]
+      end
+    end
+
+    respond_to do |format|
+      if helper.save()
+        format.html { render(:partial => 'test_upload_success',
+            :locals => {:test_id => helper.id}) }
+      else
+        format.html { render(:partial => 'test_upload_error',
+            :locals => {:errors => helper.errors.full_messages() }) }
+      end
+    end
+  end
+
+  # Controller action to delete a test helper file
+  def remove_helper
+    TestHelper.destroy(params[:helper_id])
+    respond_to do |format|
+      format.html { render(:text => 'Success') }
+    end
+  end
 end
