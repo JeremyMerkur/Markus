@@ -211,7 +211,6 @@ class AutomatedTestsController < ApplicationController
   # Called by the "Add Test Script File" button, renders a form block
   # for the user to enter information into
   def add_new_test_form
-    # assignment = Assignment.find(params[:assignment_id])
     new_test_script = TestScript.new
     respond_to do |format|
       format.html {render(:partial => 'test_script_upload',
@@ -251,7 +250,6 @@ class AutomatedTestsController < ApplicationController
     assignment = Assignment.find(params[:assignment_id])
     if params[:is_new] == 'true'
       # make new test
-      # test_params = params[:test_script].clone.delete("script_name")
       test = assignment.test_scripts.build(params[:test_script])
       if (params[:FILE_UPLOAD])
         test.script_name = params[:FILE_UPLOAD]
@@ -259,7 +257,6 @@ class AutomatedTestsController < ApplicationController
     else
       # find old test
       test = TestScript.find(params[:test_id])
-      # test_params = params[:test_script].clone.delete("script_name")
       test.attributes=(params[:test_script])
       if (params[:FILE_UPLOAD])
         test.script_name = params[:FILE_UPLOAD]
@@ -268,11 +265,21 @@ class AutomatedTestsController < ApplicationController
 
     respond_to do |format|
       if test.save()
-        format.html { render(:partial => 'test_upload_success',
-            :locals => {:test_id => test.id}) }
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => true,
+              :message => I18n.t('automated_tests.test_script_upload_succeeded'),
+              :info => test.id.to_s,
+              :errors => Array.new
+              })}
       else
-        format.html { render(:partial => 'test_upload_error',
-            :locals => {:errors => test.errors.full_messages() }) }
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => false,
+              :message => I18n.t('automated_tests.test_script_upload_failed'),
+              :info => "",
+              :errors => test.errors.full_messages()
+              })}
       end
     end
   end
@@ -304,13 +311,25 @@ class AutomatedTestsController < ApplicationController
       end
     end
 
+
+
     respond_to do |format|
       if test.save()
-        format.html { render(:partial => 'test_upload_success',
-            :locals => {:test_id => test.id}) }
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => true,
+              :message => I18n.t('automated_tests.test_support_upload_succeeded'),
+              :info => test.id.to_s,
+              :errors => Array.new
+              })}
       else
-        format.html { render(:partial => 'test_upload_error',
-            :locals => {:errors => test.errors.full_messages() }) }
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => false,
+              :message => I18n.t('automated_tests.test_support_upload_failed'),
+              :info => "",
+              :errors => test.errors.full_messages()
+              })}
       end
     end
   end
@@ -326,18 +345,16 @@ class AutomatedTestsController < ApplicationController
   # Controller action to handle the updating and creation of new
   # test helper files in the database
   def update_helper
-    # assignment = Assignment.find(params[:assignment_id])
     test_script = TestScript.find(params[:test_script_id])
     if params[:is_new] == 'true'
-      # make new support
+      # make new helper
       helper = test_script.test_helpers.build()
       if (params[:FILE_UPLOAD])
         helper.file_name = params[:FILE_UPLOAD]
       end
     else
-      # find old test
+      # find old helper
       helper = TestHelper.find(params[:helper_id])
-      # helper.attributes=(params[:test_support_file])
       if (params[:FILE_UPLOAD])
         helper.file_name = params[:FILE_UPLOAD]
       end
@@ -345,11 +362,21 @@ class AutomatedTestsController < ApplicationController
 
     respond_to do |format|
       if helper.save()
-        format.html { render(:partial => 'test_upload_success',
-            :locals => {:test_id => helper.id}) }
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => true,
+              :message => I18n.t('automated_tests.test_helper_upload_succeeded'),
+              :info => helper.id.to_s,
+              :errors => Array.new
+              })}
       else
-        format.html { render(:partial => 'test_upload_error',
-            :locals => {:errors => helper.errors.full_messages() }) }
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => false,
+              :message => I18n.t('automated_tests.test_helper_upload_failed'),
+              :info => "",
+              :errors => helper.errors.full_messages()
+              })}
       end
     end
   end
@@ -361,4 +388,42 @@ class AutomatedTestsController < ApplicationController
       format.html { render(:text => 'Success') }
     end
   end
+
+
+  def download_script
+    script = TestScript.find(params[:test_script_id])
+    if File.exists?(script.file_path)
+      file_contents = IO.read(script.file_path)
+        send_file(
+        script.file_path,
+        :type => ( SubmissionFile.is_binary?(file_contents) ? 'application/octet-stream':'text/plain' ),
+        :x_sendfile => true
+        )
+    end
+  end
+
+  def download_helper
+    helper = TestHelper.find(params[:test_helper_id])
+    if File.exists?(helper.file_path)
+      file_contents = IO.read(helper.file_path)
+        send_file(
+        helper.file_path,
+        :type => ( SubmissionFile.is_binary?(file_contents) ? 'application/octet-stream':'text/plain' ),
+        :x_sendfile => true
+        )
+    end
+  end
+
+  def download_support
+    support = TestSupportFile.find(params[:test_support_id])
+    if File.exists?(support.file_path)
+      file_contents = IO.read(support.file_path)
+        send_file(
+        support.file_path,
+        :type => ( SubmissionFile.is_binary?(file_contents) ? 'application/octet-stream':'text/plain' ),
+        :x_sendfile => true
+        )
+    end
+  end
+
 end

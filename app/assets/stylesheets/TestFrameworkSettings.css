@@ -16,3 +16,7 @@ div.settings_left_side {
 div.error li {
   padding-left:10px;
 }
+
+div.test_script_buttons {
+	padding: 10px;
+}

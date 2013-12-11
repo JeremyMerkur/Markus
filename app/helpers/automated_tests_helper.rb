@@ -17,6 +17,7 @@ module AutomatedTestsHelper
     @grouping = Grouping.find(grouping_id)
     @assignment = @grouping.assignment
     @group = @grouping.group
+    @call_on = call_on
 
     @repo_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, @group.repo_name)
     export_group_repo(@group, @repo_dir)
@@ -168,6 +169,12 @@ module AutomatedTestsHelper
       raise I18n.t("automated_tests.test_files_unavailable")
     end
 
+    # Check that at least one script works
+    if scripts_to_run(@assignment, @call_on).length <= 0
+      # TODO: show the error to user instead of raising a runtime error
+      raise I18n.t("automated_tests.test_files_unavailable")
+    end
+
     return true
   end
 
@@ -229,7 +236,7 @@ module AutomatedTestsHelper
   # had error; the second one is a boolean variable, true => execution
   # passeed, false => error occurred.
   def self.launch_test(server_id, assignment, repo_dir, call_on)
-    # Get src_dir
+    # Get src_dir (where the student code is)
     src_dir = File.join(repo_dir, assignment.repository_folder)
 
     # Get test_dir
@@ -257,22 +264,38 @@ module AutomatedTestsHelper
     end
 
     # Securely copy source files, test files and test runner script to run_dir
-    stdout, stderr, success = execute_cmd("scp -p -r '#{src_dir}'/* #{server}:#{run_dir}")
+
+    # Make all the folders to hold the assorted files needed for testing
+    stdout, stderr, success = execute_cmd("ssh #{server} mkdir '#{run_dir}/student_code' '#{run_dir}/test_scripts' '#{run_dir}/test_supports'")
+    if !(success)
+      return [stderr, false]
+    end
+
+    # Copy the student code over
+    stdout, stderr, success = execute_cmd("scp -p -r '#{src_dir}'/* #{server}:#{run_dir}/student_code")
     if !(success)
       return [stderr, false]
     end
     # Since tests now consist of potentially multiple files, all of those have to
     # copied up to the test server, in a format that the test runner can understand
     assignment.test_scripts.each do |ts|
-      stdout, stderr, success = execute_cmd("ssh #{server} mkdir '#{run_dir}/#{ts.script_name}_folder'")
+      stdout, stderr, success = execute_cmd("ssh #{server} mkdir '#{run_dir}/test_scripts/#{ts.script_name}_folder'")
       if !(success)
         return [stderr, false]
       end
-      stdout, stderr, success = execute_cmd("scp -p -r '#{test_dir}/#{ts.id.to_s}'/* #{server}:#{run_dir}/#{ts.script_name}_folder")
+      stdout, stderr, success = execute_cmd("scp -p -r '#{test_dir}/#{ts.id.to_s}'/* #{server}:#{run_dir}/test_scripts/#{ts.script_name}_folder")
       if !(success)
         return [stderr, false]
       end
     end
+    # Copy over the support files
+    assignment.test_support_files.each do |ts|
+      stdout, stderr, success = execute_cmd("scp -p -r '#{ts.file_path}' #{server}:#{run_dir}/test_supports")
+      if !(success)
+        return [stderr, false]
+      end
+    end
+    # Copy over the test runner
     stdout, stderr, success = execute_cmd("ssh #{server} cp #{test_runner} #{run_dir}")
     if !(success)
       return [stderr, false]
@@ -287,10 +310,6 @@ module AutomatedTestsHelper
 
     # Run script
     test_runner_name = File.basename(test_runner)
-    log_file = File.new("/Users/Deus/Desktop/Markus_Log.txt", "a+")
-    # log_file.puts("test\n")
-    log_file.puts("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
-    log_file.close
     stdout, stderr, success = execute_cmd("ssh #{server} \"cd #{run_dir}; ruby #{test_runner_name} #{arg_list}\"")
     if !(success)
       return [stderr, false]
@@ -441,57 +460,6 @@ module AutomatedTestsHelper
     test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
     if !(File.exists?(test_dir))
       FileUtils.mkdir(test_dir)
-    end
-  end
-
-  # def add_test_script_link(name, form)
-  #   link_to_function name do |page|
-  #     new_test_script = TestScript.new
-  #     test_script = render(:partial => 'test_script_upload',
-  #                        :locals => {:form => form,
-  #                                    :test_script => new_test_script})
-
-  #     test_script_options = render(:partial => 'test_script_options',
-  #                        :locals => {:form => form,
-  #                                    :test_script => new_test_script })
-  #     page << %{
-  #       if ($F('is_testing_framework_enabled') != null) {
-  #         var new_test_script_id = new Date().getTime();
-  #         var last_seqnum = jQuery('.seqnum').last().val();
-  #         var new_seqnum = 0;
-  #         if(last_seqnum) {
-  #           new_seqnum = 16 + parseFloat(last_seqnum);
-  #         }
-
-  #         var new_test_script = jQuery("#{ escape_javascript test_script}".replace(/(attributes_\\d+|\\[\\d+\\])/g, new_test_script_id));
-  #         jQuery('#test_scripts').append(new_test_script);
-
-  #         new_test_script.find('.seqnum').val(new_seqnum);
-  #         new_test_script.data('collapsed', false);
-
-  #         new_test_script.find('.upload_file').change(function () {
-  #           new_test_script.find('.file_name').text(this.value);
-  #         })
-  #       } else {
-  #         alert("#{I18n.t("automated_tests.add_test_script_file_alert")}");
-  #       }
-  #     }
-  #   end
-  # end
-
-  def add_test_support_file_link(name, form)
-    link_to_function name do |page|
-      test_support_file = render(:partial => 'test_support_file_upload',
-                         :locals => {:form => form,
-                                     :test_support_file => TestSupportFile.new })
-      page << %{
-        if ($F('is_testing_framework_enabled') != null) {
-          var new_test_support_file_id = new Date().getTime();
-          $('test_support_files').insert({bottom: "#{ escape_javascript test_support_file }".replace(/(attributes_\\d+|\\[\\d+\\])/g, new_test_support_file_id) });
-        } else {
-          alert("#{I18n.t("automated_tests.add_test_support_file_alert")}");
-        }
-      }
     end
   end
 

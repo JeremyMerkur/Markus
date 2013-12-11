@@ -282,6 +282,11 @@ TaMembership.blueprint do
   membership_status {'pending'}
 end
 
+TestHelper.blueprint do
+  file_name {Sham.filename}
+  test_script {TestScript.make}
+end
+
 TestScript.blueprint do
   assignment {Assignment.make}
   seq_num {0}

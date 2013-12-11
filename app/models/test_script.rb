@@ -41,6 +41,8 @@
 #   to the student.
 ##############################################################
 
+require 'fileutils'
+
 class TestScript < ActiveRecord::Base
   belongs_to :assignment
   has_many :test_results, :dependent => :delete_all
@@ -111,7 +113,21 @@ class TestScript < ActiveRecord::Base
   validates_inclusion_of :display_marks_earned, :in => display_option
   validates_inclusion_of :display_expected_output, :in => display_option
   validates_inclusion_of :display_actual_output, :in => display_option
-  
+
+  # Address of the test script file
+  def file_path
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+    test_script = File.join(test_dir, self.id.to_s, self.script_name)
+    return test_script
+  end
+
+  # Address of the folder where the test and its helpers are
+  def folder_path
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+    script_folder = File.join(test_dir, self.id.to_s)
+    return script_folder
+  end
+
   # All callback methods are protected methods
   protected
   
@@ -140,7 +156,9 @@ class TestScript < ActiveRecord::Base
       # If the filenames are different, delete the old file
       if self.script_name_changed?
         # Delete old file
-        self.delete_file
+        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+        path = File.join(test_dir, self.id.to_s, self.script_name_was)
+        File.delete(path) if File.exist?(path)
       end
     end
   end
@@ -162,22 +180,15 @@ class TestScript < ActiveRecord::Base
   end
 
   def delete_file
-    # Automated tests repository to delete from
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-
-    # Delete file if it exists
-    path = File.join(test_dir, self.id.to_s, self.script_name)
-    if File.exist?(path)
-      File.delete(path)
+    if File.exist?(self.file_path)
+      File.delete(self.file_path)
     end
   end
 
+  # Callback to cleanup the script and the folder
   def delete_file_and_folder
-    self.test_helpers.each { |th| th.destroy }
     self.delete_file
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-    dir_path = File.join(test_dir, self.id.to_s)
-    Dir.delete(dir_path) if File.directory?(dir_path)
+    FileUtils.rm_rf(self.folder_path) if File.directory?(self.folder_path)
   end
 
 end

@@ -48,6 +48,13 @@ class TestSupportFile < ActiveRecord::Base
     end
   end
   
+  # Address of the test support file
+  def file_path
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+    test_support = File.join(test_dir, self.file_name)
+    return test_support
+  end
+
   # All callback methods are protected methods
   protected
   
@@ -76,7 +83,9 @@ class TestSupportFile < ActiveRecord::Base
       # If the filenames are different, delete the old file
       if self.file_name_changed?
         # Delete old file
-        self.delete_file
+        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+        path = File.join(test_dir, self.file_name_was)
+        File.delete(path) if File.exist?(path)
       end
     end
   end
@@ -97,13 +106,8 @@ class TestSupportFile < ActiveRecord::Base
   end
 
   def delete_file
-    # Automated tests repository to delete from
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-
-    # Delete file if it exists
-    path = File.join(test_dir, self.file_name)
-    if File.exist?(path)
-      File.delete(path)
+    if File.exist?(self.file_path)
+      File.delete(self.file_path)
     end
   end
 

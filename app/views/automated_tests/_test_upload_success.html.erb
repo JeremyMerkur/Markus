@@ -1,7 +1,0 @@
-<%
-  # 'test_id' is a local variable passed the id of the modifies/saved activerecord
-%>
-<div class="success">
-	<div id="info" value=<%= raw('"' + test_id.to_s + '"')%>></div>
-    <%= I18n.t('automated_tests.test_script_upload_succeeded') %>
-</div>

@@ -37,10 +37,22 @@ class TestHelper < ActiveRecord::Base
     end
 
     dup_file = TestHelper.find_by_test_script_id_and_file_name(record.test_script_id, name)
-    if dup_file && dup_file.id != record.id || name == record.test_script.script_name || name == (record.test_script.script_name + "_folder")
+    if  record.test_script
+      script_name = record.test_script.script_name
+    else
+      script_name = ""
+    end
+    if dup_file && dup_file.id != record.id || name == script_name
       record.errors.add attr, ' ' + name + ' ' + I18n.t("automated_tests.filename_exists")
     end
 
+  end
+
+  # Address of the test helper file
+  def file_path
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
+    test_helper = File.join(test_dir, self.test_script_id.to_s, self.file_name)
+    return test_helper
   end
 
   # All callback methods are protected methods
@@ -71,7 +83,9 @@ class TestHelper < ActiveRecord::Base
       # If the filenames are different, delete the old file
       if self.file_name_changed?
         # Delete old file
-        self.delete_file
+        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
+        path = File.join(test_dir, self.test_script_id.to_s, self.file_name_was)
+        File.delete(path) if File.exist?(path)
       end
     end
   end
@@ -92,13 +106,8 @@ class TestHelper < ActiveRecord::Base
   end
 
   def delete_file
-    # Automated tests repository to delete from
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
-
-    # Delete file if it exists
-    path = File.join(test_dir, self.test_script_id.to_s, self.file_name)
-    if File.exist?(path)
-      File.delete(path)
+    if File.exist?(self.file_path)
+      File.delete(self.file_path)
     end
   end
 

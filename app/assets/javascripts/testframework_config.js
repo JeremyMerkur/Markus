@@ -64,14 +64,20 @@ function test_helper_submit(elem) {
           var submit_result = jQuery(xhr.responseText);
           elem.find('.ajax_message').html(submit_result);
           if (submit_result.attr("class") == "success") {
+            var helper_id = jQuery(submit_result).find('#info').attr("value")
+            var path = elem.closest(".test_helper_file").find('.download_helper_button').attr('path') + "?test_helper_id=" + helper_id;
             elem.find('.is_new').val("false");
-            elem.find('.helper_id').val(jQuery(submit_result).find('#info').attr("value"));
+            elem.find('.helper_id').val(helper_id);
+            elem.closest(".test_helper_file").find('.download_helper_button').attr('href', path);
+            elem.closest(".test_helper_file").find('.download_helper_button').show();
           }
         }
       };
 
   // Bind the custom submit button to avoid unwanted normal form behavior
   elem.find('.submit_test_script_helper').click(function () {
+    elem.find('.ajax_message').empty();
+    // alert("?");
     // Get the form data using the spiffy new HTML5 api
     var formData = new FormData(elem[0]);
     // Validate file upload
@@ -99,10 +105,8 @@ function test_helper_submit(elem) {
 
   // Bind the file upload input so that it updates UI elements and a name tag
   elem.find('.upload_file').change(function () {
-    // jQuery(this).closest('.settings_box').find('.file_name').text(this.value);
     elem.find('.file_name').text(this.value);
     elem.find('.upload_file').attr('file_name', this.value);
-    // elem.find('.script_name_field').attr('value', this.value);
   });
 
   // Bind the remove-form functionality to the appropriate button
@@ -146,16 +150,21 @@ function test_script_submit(elem) {
           var submit_result = jQuery(xhr.responseText);
           elem.find('.ajax_message').html(submit_result);
           if (submit_result.attr("class") == "success") {
+            var test_id = jQuery(submit_result).find('#info').attr("value")
+            var path = elem.closest(".test_script").find('.download_script_button').attr('path') + "?test_script_id=" + test_id;
             elem.find('.is_new').val("false");
-            elem.find('.test_id').val(jQuery(submit_result).find('#info').attr("value"));
+            elem.find('.test_id').val(test_id);
             elem.closest(".test_script").find('.test_script_helper_field').show();
             elem.closest(".test_script").find('.add_test_script_helper_button').show();
+            elem.closest(".test_script").find('.download_script_button').attr('href', path);
+            elem.closest(".test_script").find('.download_script_button').show();
           }
         }
       };
 
   // Bind the custom submit button to avoid unwanted normal form behavior
   elem.find('.alt_submit_test_script').click(function () {
+    elem.find('.ajax_message').empty();
     // Get the form data using the spiffy new HTML5 api
     var formData = new FormData(elem[0]);
     // Validate file upload
@@ -185,10 +194,8 @@ function test_script_submit(elem) {
 
   // Bind the file upload input so that it updates UI elements and a name tag
   elem.find('.upload_file').change(function () {
-    // jQuery(this).closest('.settings_box').find('.file_name').text(this.value);
     elem.find('.file_name').text(this.value);
     elem.find('.upload_file').attr('file_name', this.value);
-    // elem.find('.script_name_field').attr('value', this.value);
   });
 
   // Bind the remove-form functionality to the appropriate button
@@ -226,6 +233,7 @@ function test_script_submit(elem) {
         if ($F('is_testing_framework_enabled') != null) {
           var new_test_helper_file = jQuery(xhr.responseText);
           test_helper_submit(new_test_helper_file.find('.new_test_helper'));
+          new_test_helper_file.find('.download_helper_button').hide();
           elem.closest(".test_script").find('.test_script_helper').append(new_test_helper_file);
         }
       },
@@ -247,14 +255,19 @@ function test_support_submit(elem) {
           var submit_result = jQuery(xhr.responseText);
           elem.find('.ajax_message').html(submit_result);
           if (submit_result.attr("class") == "success") {
+            var support_id = jQuery(submit_result).find('#info').attr("value")
+            var path = elem.closest(".test_support_file").find('.download_support_button').attr('path') + "?test_support_id=" + support_id;
             elem.find('.is_new').val("false");
-            elem.find('.support_id').val(jQuery(submit_result).find('#info').attr("value"));
+            elem.find('.support_id').val(support_id);
+            elem.closest(".test_support_file").find('.download_support_button').attr('href', path);
+            elem.closest(".test_support_file").find('.download_support_button').show();
           }
         }
       };
 
   // Bind the custom submit button to avoid unwanted normal form behavior
   elem.find('.submit_test_script_support').click(function () {
+    elem.find('.ajax_message').empty();
     // Get the form data using the spiffy new HTML5 api
     var formData = new FormData(elem[0]);
     // Validate file upload
@@ -284,10 +297,8 @@ function test_support_submit(elem) {
 
   // Bind the file upload input so that it updates UI elements and a name tag
   elem.find('.upload_file').change(function () {
-    // jQuery(this).closest('.settings_box').find('.file_name').text(this.value);
     elem.find('.file_name').text(this.value);
     elem.find('.upload_file').attr('file_name', this.value);
-    // elem.find('.script_name_field').attr('value', this.value);
   });
 
   // Bind the remove-form functionality to the appropriate button
@@ -323,9 +334,9 @@ function test_support_submit(elem) {
 
 jQuery(document).ready(function() {
   /* Update the script name in the legend when the admin uploads a file */
-  jQuery('.upload_file').change(function () {
-    jQuery(this).closest('.settings_box').find('.file_name').text(this.value);
-  })
+  // jQuery('.upload_file').change(function () {
+  //   jQuery(this).closest('.settings_box').find('.file_name').text(this.value);
+  // })
 
   /* Existing files are collapsed by default */
   jQuery('.collapse').each(function (i) {
@@ -408,6 +419,7 @@ jQuery(document).ready(function() {
       // Don't let new test scripts have helper files added
       new_test_script.find('.test_script_helper_field').hide();
       new_test_script.find('.add_test_script_helper_button').hide();
+      new_test_script.find('.download_script_button').hide();
 
       // Bind a proper submit function to the form
       test_script_submit(new_test_script.find('.new_test_script'));
@@ -421,6 +433,7 @@ jQuery(document).ready(function() {
     if ($F('is_testing_framework_enabled') != null) {
       var new_test_support_file_id = new Date().getTime();
       var new_test_support_file = jQuery(xhr.responseText);
+      new_test_support_file.find('.download_support_button').hide();
       jQuery('#test_support_files').append(new_test_support_file);
       test_support_submit(new_test_support_file.find('.new_test_support_file'));
     }

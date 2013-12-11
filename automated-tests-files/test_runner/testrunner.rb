@@ -2,11 +2,12 @@
 
 require 'timeout'
 require 'ftools'
+require 'fileutils'
 
 $LAST_ARG = 0
 $HALT_ON_FAIL = false
 $HAS_FAILED = false
-$TIME_LIMIT = 30    #the maximum amount of time a given test suite can run for, in seconds
+$TIME_LIMIT = 60    #the maximum amount of time a given test suite can run for, in seconds
 
 #
 # given the filename, and suite output, it formats and returns the results
@@ -47,16 +48,26 @@ end
 # 
 def runTest(fileName)
   begin
-    # Copy all the contents of the test script folder to the current directory
-    temp_files = []
-    Dir.glob("#{fileName}_folder/*") do |f|
-      File.copy(f, File.basename(f))
-      temp_files.push(File.basename(f))
+    # Prepare a directory to execute the test
+    run_test = "run_test"
+    Dir.mkdir(run_test)
+    # Copy the student's code to the execution directory
+    Dir.glob("student_code/*") do |f|
+      File.copy(f, run_test)
     end
+    # Copy over the support code
+    Dir.glob("test_supports/*") do |f|
+      File.copy(f, run_test)
+    end
+    # Copy all the contents of the test script folder to the execution directory
+    Dir.glob("test_scripts/#{fileName}_folder/*") do |f|
+      File.copy(f, run_test)
+    end
+
     # basic timeout check
     # if the test_suite runs for over N seconds, it times out
     Timeout.timeout($TIME_LIMIT) do
-      @pipe = IO.popen("./'#{fileName}'")
+      @pipe = IO.popen("cd #{run_test}; ./'#{fileName}'")
       Process.wait @pipe.pid
     end
   rescue Timeout::Error
@@ -66,24 +77,18 @@ def runTest(fileName)
     
     $HAS_FAILED = true
 
+    FileUtils.rm_rf(run_test)
+
     output = "<test>\n" \
              "<actual>MarkUs - Timeout</actual>\n" \
              "<status>Error</status>\n" \
              "</test>"
 
-    # Clean up the copied files
-    temp_files.each do |tf|
-      File.delete(tf)
-    end
-
     # then just parse and return that error message
     return parseOutput(fileName, output, $?)
   end
-    
-  # Clean up the copied files
-  temp_files.each do |tf|
-    File.delete(tf)
-  end
+
+  FileUtils.rm_rf(run_test)
 
   # otherwise, iterate over the pipe's data, one line at a time
   # and append that to the output
@@ -143,7 +148,7 @@ def checkFiles(files)
   files.each {
     |file|
     # Each file is contained in
-    if  !File.exist?("#{file}_folder/#{file}") then
+    if  !File.exist?("test_scripts/#{file}_folder/#{file}") then
       return false
     end
   }
@@ -157,13 +162,13 @@ end
 def modFiles(files)
   files.each{
     |file|
-    f = File.new("#{file}_folder/#{file}")
+    f = File.new("test_scripts/#{file}_folder/#{file}")
     f.chmod(0766)
   }
 end
 
 def main()
-  #the output is nested in a <test_stuite> tag
+  #the output is nested in a <testrun> tag
   output = "<testrun>\n"  
   
   # if there are no other cmd line args, then stdin is being used

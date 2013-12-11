@@ -1,0 +1,32 @@
+<%
+  # 'success' is a local variable set to true if this is a success response
+
+  # 'message' is a local variable with the display message to be sent back
+
+  # 'info' is a local variable passed a string to be sent back (but hidden)
+
+  # 'errors' is a local variable passed a list of strings that are the errors
+  # that occured when trying to update or create a new activerecord
+%>
+
+<% if success %>
+
+  <div class="success">
+   <div id="info" value=<%= raw('"' + info + '"')%>></div>
+   <%= message %>
+ </div>
+
+<% else %>
+
+  <div class="error">
+    <list>
+      <%= message %>
+      <% errors.each do |e| %>
+        <li>
+          <%= e %>
+        </li>
+      <% end %>
+    </list>
+  </div>
+  
+<% end %>

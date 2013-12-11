@@ -116,10 +116,11 @@
       <%= f.check_box :halts_testing, :value => f.object.halts_testing %>
     </div>
   </div>
-  <div style="clear:both;">
+  <div style="clear:both;" class="test_script_buttons">
     <%= button_tag I18n.t('automated_tests.submit'), :type => "button", :disable_with => I18n.t('working'), :class => 'alt_submit_test_script' %>
     <%= button_tag I18n.t('automated_tests.remove_file'), :type => "button", :disable_with => I18n.t('working'), :class => 'alt_remove_test_script', :action => remove_test_assignment_automated_tests_path %>
     <%= button_tag I18n.t('automated_tests.add_test_helper_link'), :type => "button", :disable_with => I18n.t('working'), :class => 'add_test_script_helper_button', :action => add_new_test_helper_form_assignment_automated_tests_path %>
+    <%= link_to ("<button>" + t(:download) + "</button>").html_safe, download_script_assignment_automated_tests_path(:test_script_id => f.object.id), :method => "get", :path => download_script_assignment_automated_tests_path, :class => 'download_script_button' %>
   </div>
   
 
@@ -128,7 +129,7 @@
   <fieldset class="test_script_helper_field">
     <div>
       <div class="test_script_helper"></div>
-        <% test_script.test_helpers.sort_by(&:file_name).each do |thf| %>
+      <% test_script.test_helpers.sort_by(&:file_name).each do |thf| %>
         <%= render :partial => 'test_helper_file_upload', :locals => {:test_script => test_script, :test_helper_file => thf, :is_new => 'false' } %>
       <% end %>
     </div>

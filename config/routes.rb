@@ -94,6 +94,9 @@ Markus::Application.routes.draw do
         put 'remove_support'
         put 'update_helper'
         put 'remove_helper'
+        get 'download_script'
+        get 'download_helper'
+        get 'download_support'
       end
     end
 
