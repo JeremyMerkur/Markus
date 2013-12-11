@@ -26,12 +26,6 @@
 #                       when a user sends a test request
 #   halts_testing:      a boolean indicates if this script halts
 #                       the test run when error occurs
-#   display_description
-#   display_run_status
-#   display_marks_earned
-#   display_input
-#   display_expected_output
-#   display_actual_output
 #
 #   The 6 attributes start with "display" have similar usages.
 #   Each has a value of one of {"do_not_display",
@@ -95,21 +89,6 @@ class TestScript < ActiveRecord::Base
   
   validates_numericality_of :seq_num
   validates_numericality_of :max_marks, :only_integer => true, :greater_than_or_equal_to => 0
-
-  validates_presence_of :display_description
-  validates_presence_of :display_run_status
-  validates_presence_of :display_marks_earned
-  validates_presence_of :display_input
-  validates_presence_of :display_expected_output
-  validates_presence_of :display_actual_output
-  
-  display_option = %w(do_not_display display_after_submission display_after_collection)
-  validates_inclusion_of :display_description, :in => display_option
-  validates_inclusion_of :display_run_status, :in => display_option
-  validates_inclusion_of :display_input, :in => display_option
-  validates_inclusion_of :display_marks_earned, :in => display_option
-  validates_inclusion_of :display_expected_output, :in => display_option
-  validates_inclusion_of :display_actual_output, :in => display_option
   
   # All callback methods are protected methods
   protected
