@@ -11,6 +11,7 @@
 </div>
 <% end %>
 
+
 <%= form_for @assignment,
        :as => :assignment,
        :url => manage_assignment_automated_tests_path(),
@@ -31,6 +32,9 @@
     </p>
   </div>
 
+<%= f.submit t(:submit) , :disable_with => I18n.t('working')%>
+<% end %> 
+
   <fieldset>
     <legend><%= t("automated_tests.assignment_test_script_files") %></legend>
       <p>
@@ -40,12 +44,12 @@
       <p><%= raw t("assignment.required_fields") %></p>
 
       <div id="test_scripts">
-        <%= f.fields_for :test_scripts, @assignment.test_scripts.sort_by(&:seq_num) do |ts| %>
-          <%  render :partial => 'test_script_upload', :locals => {:test_script => ts.object, :form => f } %>
+        <% @assignment.test_scripts.sort_by(&:seq_num).each do |ts| %>
+          <%= render :partial => 'test_script_upload', :locals => {:test_script => ts, :is_new => 'false'} %>
         <% end %>
       </div>
       <p id="test_script_add_link">
-        <%= add_test_script_link t("automated_tests.add_test_script_file_link"), f %>
+        <%= link_to(t("automated_tests.add_test_script_file_link"), add_new_test_form_assignment_automated_tests_path, :remote => true, :id => "add_new_test_script_form") %>
       </p>
   </fieldset>
 
@@ -53,16 +57,16 @@
     <legend><%= t("automated_tests.assignment_test_support_files") %></legend>
     <div class="wrapLeft">
       <div id="test_support_files">
-	    <%= f.fields_for :test_support_files do |tsf| %>
-	      <%= render :partial => 'test_support_file_upload', :locals => {:test_support_file => tsf.object, :form => f } %>
+	    <% @assignment.test_support_files.sort_by(&:id).each do |tsf| %>
+	      <%= render :partial => 'test_support_file_upload', :locals => {:test_support_file => tsf, :assignment => @assignment, :is_new => 'false' } %>
 	    <% end %>
       </div>
       <p id="test_support_file_add_link">
-        <%= add_test_support_file_link t("automated_tests.add_test_support_file_link"), f %>
+        <%= link_to(t("automated_tests.add_test_support_file_link"),
+         add_new_test_support_form_assignment_automated_tests_path, :remote => true, :id => "add_new_test_support_form") %>
       </p>
     </div>
   </fieldset>
 
-<%= f.submit t(:submit) , :disable_with => I18n.t('working')%>
-<% end %>
+
 </div>

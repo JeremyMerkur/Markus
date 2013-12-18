@@ -282,6 +282,11 @@ TaMembership.blueprint do
   membership_status {'pending'}
 end
 
+TestHelper.blueprint do
+  file_name {Sham.filename}
+  test_script {TestScript.make}
+end
+
 TestScript.blueprint do
   assignment {Assignment.make}
   seq_num {0}
@@ -291,12 +296,6 @@ TestScript.blueprint do
   run_on_submission {true}
   run_on_request {true}
   halts_testing {false}
-  display_description {'do_not_display'}
-  display_run_status {'do_not_display'}
-  display_marks_earned {'do_not_display'}
-  display_input {'do_not_display'}
-  display_expected_output {'do_not_display'}
-  display_actual_output {'do_not_display'}
 end
 
 TestSupportFile.blueprint do
@@ -320,11 +319,10 @@ TestResult.blueprint do
   submission {Submission.make}
   test_script {TestScript.make}
   name {Sham.filename}
-  completion_status {'pass'}
   marks_earned {0}
-  input_description {Sham.message}
-  actual_output {Sham.message}
-  expected_output {Sham.message}
+  marks_available {0}
+  description {Sham.description}
+  feedback {""}
 end
 
 TextAnnotation.blueprint do

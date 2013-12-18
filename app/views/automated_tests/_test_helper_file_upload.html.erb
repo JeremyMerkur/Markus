@@ -1,0 +1,27 @@
+<div class="test_helper_file">
+<%= form_for test_helper_file,
+       :url => update_helper_assignment_automated_tests_path,
+       :remote => true,
+       :method => "PUT",
+       :html => {:multipart => true} do |f| %>
+
+  <%= hidden_field_tag :helper_id, f.object.id, :class => "helper_id" %>
+  <%= hidden_field_tag :test_script_id, test_script.id, :class => "test_script_id" %>
+  <%= hidden_field_tag :is_new, is_new, :class => "is_new" %>
+
+  <div class="ajax_message"></div>
+
+  <span class="file_name">
+    <% if !f.object.new_record? %>
+      <%= f.object.file_name %>
+    <% else %>
+      <%= raw t('automated_tests.upload_required') %>
+    <% end %>
+  </span>
+  <%= f.file_field :file_name, :class => 'upload_file', :size=>"30" %>
+
+  <%= button_tag I18n.t('automated_tests.submit'), :type => "button", :disable_with => I18n.t('working'), :class => 'submit_test_script_helper' %>
+  <%= button_tag I18n.t('automated_tests.remove_file'), :type => "button", :disable_with => I18n.t('working'), :class => 'remove_test_script_helper', :action => remove_helper_assignment_automated_tests_path %>
+    <%= link_to ("<button>" + t(:download) + "</button>").html_safe, download_helper_assignment_automated_tests_path(:test_helper_id => f.object.id), :method => "get", :path => download_helper_assignment_automated_tests_path, :class => 'download_helper_button' %>
+<% end %>
+</div>
