@@ -316,11 +316,17 @@ module AutomatedTestsHelper
     @revision  = repo.get_latest_revision
     @revision_number = @revision.revision_number
 
+    test_run = TestRunResult.new
+    test_run.grouping_id = grouping_id
+    test_run.repo_revision = @revision_number
+    test_run.save
+
     # find all the test_script nodes and loop over them
     test_scripts = doc.find('/testrun/test_script')
     test_scripts.each do |s_node|
       script_result = TestScriptResult.new
       script_result.grouping_id = grouping_id
+      script_result.test_run_result_id = test_run.id
       script_marks_earned = 0    # cumulate the marks_earn in this script
 
       # find the script name and save it
