@@ -11,6 +11,11 @@ a.collapse {
 div.settings_left_side {
   margin-right:30px;
   float:left;
+  /*height: 100%;*/
+}
+
+div.settings_right_side {
+	float: left;
 }
 
 div.error li {
@@ -18,19 +23,18 @@ div.error li {
 }
 
 div.test_script_buttons {
-	padding: 10px;
+	padding: 15px;
+	clear: both;
 }
 
 div.test_script_helper_field {
 	width: 100%;
-	/*float: left;*/
 	overflow: hidden;
 	clear: both;
 }
 
 div.test_script_info {
 	float: left;
-	/*width: 5%;*/
 	padding: 10px;
 }
 

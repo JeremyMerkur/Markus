@@ -1,10 +1,4 @@
 <div class="test_script">
-<% display_options = { 
-  I18n.t("automated_tests.script_option.display_option.display_after_submission") => "display_after_submission", 
-  I18n.t("automated_tests.script_option.display_option.display_after_collection") => "display_after_collection",
-  I18n.t("automated_tests.script_option.display_option.do_not_display") => "do_not_display"
-} # this is defined and used to validate input in test_script.rb 
-%>
 
 <div class="dragarrows">↕</div>
 <fieldset class="settings_box">
@@ -20,8 +14,6 @@
     <%= link_to_function (is_new != "true" ? '[+]' : '[-]'), "toggleSettings(this);", :class => "collapse" %>
   </legend>
 
-  <div class="ajax_message"></div>
-
 <%= form_for test_script,
        :url => update_test_assignment_automated_tests_path,
        :remote => true,
@@ -30,6 +22,8 @@
 
 <% saved = !f.object.new_record? %>
 <% hide = saved ? 'style="display:none;"' : '' %>
+
+  <div class="ajax_message"></div>
 
   <%= f.hidden_field :seq_num, :value => f.object.seq_num, :class => "seqnum" %>
   <%= hidden_field_tag :test_id, f.object.id, :class => "test_id" %>
@@ -52,36 +46,6 @@
     <% if !saved %>
       <%= raw maxmarks_section %>
     <% end %>
-
-    <div <%= raw hide %>>
-      <%= f.label :display_settings, t('automated_tests.script_option.display_settings') %> <br/>
-      <ul>
-        <li>
-          <%= f.label :display_description, t('automated_tests.script_option.display_description') %>
-          <%= f.select :display_description, options_for_select(display_options, f.object.display_description) %>
-        </li>
-        <li>
-          <%= f.label :display_run_status, t('automated_tests.script_option.display_run_status') %>
-          <%= f.select :display_run_status, options_for_select(display_options, f.object.display_run_status) %>
-        </li>
-        <li>
-          <%= f.label :display_marks_earned, t('automated_tests.script_option.display_marks_earned') %>
-          <%= f.select :display_marks_earned, options_for_select(display_options, f.object.display_marks_earned) %>
-        </li>
-        <li>
-          <%= f.label :display_input, t('automated_tests.script_option.display_input') %>
-          <%= f.select :display_input, options_for_select(display_options, f.object.display_input) %>
-        </li>
-        <li>
-          <%= f.label :display_expected_output, t('automated_tests.script_option.display_expected_output') %>
-          <%= f.select :display_expected_output, options_for_select(display_options, f.object.display_expected_output) %>
-        </li>
-        <li>
-          <%= f.label :display_actual_output, t('automated_tests.script_option.display_actual_output') %>
-          <%= f.select :display_actual_output, options_for_select(display_options, f.object.display_actual_output) %>
-        </li>
-      </ul>
-    </div>
   </div>
 
   <div class="settings_right_side">
@@ -105,7 +69,8 @@
       <%= f.check_box :halts_testing, :value => f.object.halts_testing %>
     </div>
   </div>
-  <div style="clear:both;" class="test_script_buttons">
+  
+  <div class="test_script_buttons">
     <%= button_tag I18n.t('automated_tests.submit'), :type => "button", :disable_with => I18n.t('working'), :class => 'submit_test_script' %>
     <%= button_tag I18n.t('automated_tests.remove_file'), :type => "button", :disable_with => I18n.t('working'), :class => 'remove_test_script', :action => remove_test_assignment_automated_tests_path %>
     <%= button_tag I18n.t('automated_tests.add_test_helper_link'), :type => "button", :disable_with => I18n.t('working'), :class => 'add_test_script_helper_button', :action => add_new_test_helper_form_assignment_automated_tests_path %>

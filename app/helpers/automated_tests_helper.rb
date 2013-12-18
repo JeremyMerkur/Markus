@@ -389,28 +389,26 @@ module AutomatedTestsHelper
         test_result = TestResult.new
         test_result.grouping_id = grouping_id
         test_result.test_script_id = test_script.id
+
         # give default values
-        test_result.name = 'no name is given'
-        test_result.completion_status = 'error'
-        test_result.input_description = ''
-        test_result.expected_output = ''
-        test_result.actual_output = ''
+        test_result.name = ''
         test_result.marks_earned = 0
+        test_result.marks_available = 0
+        test_result.description = ''
+        test_result.feedback = ''
 
         t_node.each_element do |child|
           if child.name == 'name'
             test_result.name = child.content
-          elsif child.name == 'status'
-            test_result.completion_status = child.content.downcase
-          elsif child.name == 'input'
-            test_result.input_description = child.content
-          elsif child.name == 'expected'
-            test_result.expected_output = child.content
-          elsif child.name == 'actual'
-            test_result.actual_output = child.content
-          elsif child.name == 'marks_earned'
+          elsif child.name == 'description'
+            test_result.description = child.content
+          elsif child.name == 'marksearned'
             test_result.marks_earned = child.content
             script_marks_earned += child.content.to_i
+          elsif child.name == 'marksavailable'
+            test_result.marks_available = child.content
+          elsif child.name == 'feedback'
+            test_result.feedback = child.content
           else
             # FIXME: better error message is required (use locale)
             raise "Error: malformed xml from test runner. Unclaimed tag: " + child.name

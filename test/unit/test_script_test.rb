@@ -24,14 +24,7 @@ class TestScriptTest < ActiveSupport::TestCase
   should allow_value(false).for(:run_on_request)
   should allow_value(true).for(:halts_testing)
   should allow_value(false).for(:halts_testing)
-  
-  should validate_presence_of :display_description
-  should validate_presence_of :display_run_status
-  should validate_presence_of :display_marks_earned
-  should validate_presence_of :display_input
-  should validate_presence_of :display_expected_output
-  should validate_presence_of :display_actual_output
-  
+    
   should validate_numericality_of :seq_num
   should validate_numericality_of :max_marks
   
@@ -47,13 +40,7 @@ class TestScriptTest < ActiveSupport::TestCase
                                     :max_marks               => 5,
                                     :run_on_submission       => true,
                                     :run_on_request          => true,
-                                    :halts_testing           => false,
-                                    :display_description     => 'do_not_display',
-                                    :display_run_status      => 'do_not_display',
-                                    :display_marks_earned    => 'do_not_display',
-                                    :display_input           => 'do_not_display',
-                                    :display_expected_output => 'do_not_display',
-                                    :display_actual_output   => 'do_not_display')
+                                    :halts_testing           => false)
     end
     
     should "return true when a valid file is created" do
@@ -89,13 +76,7 @@ class TestScriptTest < ActiveSupport::TestCase
                                          :max_marks               => 5,
                                          :run_on_submission       => true,
                                          :run_on_request          => true,
-                                         :halts_testing           => false,
-                                         :display_description     => display_option[0],
-                                         :display_run_status      => display_option[1],
-                                         :display_marks_earned    => display_option[2],
-                                         :display_input           => display_option[0],
-                                         :display_expected_output => display_option[1],
-                                         :display_actual_output   => display_option[2])
+                                         :halts_testing           => false)
                                          
       @invalidscriptfile = TestScript.make(:assignment_id           => @asst.id,
                                            :seq_num                 => 2,
@@ -104,13 +85,7 @@ class TestScriptTest < ActiveSupport::TestCase
                                            :max_marks               => 5,
                                            :run_on_submission       => true,
                                            :run_on_request          => true,
-                                           :halts_testing           => false,
-                                           :display_description     => display_option[2],
-                                           :display_run_status      => display_option[1],
-                                           :display_marks_earned    => display_option[0],
-                                           :display_input           => display_option[2],
-                                           :display_expected_output => display_option[1],
-                                           :display_actual_output   => display_option[0])
+                                           :halts_testing           => false)
     end
     
     should "return false when assignment is nil" do
@@ -142,36 +117,6 @@ class TestScriptTest < ActiveSupport::TestCase
       @invalidscriptfile.seq_num = 1
       assert !@invalidscriptfile.valid?, "script file expected to be invalid when the seq_num already exists in the same assignment"
     end
-
-    should "return false when the display_description option has an invalid option" do
-      @invalidscriptfile.display_description = 'display_after_due_date'
-      assert !@invalidscriptfile.valid?, "script file expected to be invalid when the display_description option has an invalid option"
-    end
-    
-    should "return false when the display_run_status option has an invalid option" do
-      @invalidscriptfile.display_run_status = 'display_after_submit'
-      assert !@invalidscriptfile.valid?, "script file expected to be invalid when the display_run_status option has an invalid option"
-    end
-    
-    should "return false when the display_marks_earned option has an invalid option" do
-      @invalidscriptfile.display_marks_earned = 'display_before_due_date'
-      assert !@invalidscriptfile.valid?, "script file expected to be invalid when the display_marks_earned option has an invalid option"
-    end
-    
-    should "return false when the display_input option has an invalid option" do
-      @invalidscriptfile.display_input = 'display_before_collection'
-      assert !@invalidscriptfile.valid?, "script file expected to be invalid when the display_input option has an invalid option"
-    end
-    
-    should "return false when the display_expected_output option has an invalid option" do
-      @invalidscriptfile.display_expected_output = 'display_at_submission'
-      assert !@invalidscriptfile.valid?, "script file expected to be invalid when the display_expected_output option has an invalid option"
-    end
-    
-    should "return false when the display_actual_output option has an invalid option" do
-      @invalidscriptfile.display_actual_output = 'display_at_collection'
-      assert !@invalidscriptfile.valid?, "script file expected to be invalid when the display_actual_output option has an invalid option"
-    end
     
   end
   
@@ -187,13 +132,7 @@ class TestScriptTest < ActiveSupport::TestCase
                                     :max_marks               => 5,
                                     :run_on_submission       => true,
                                     :run_on_request          => true,
-                                    :halts_testing           => false,
-                                    :display_description     => 'do_not_display',
-                                    :display_run_status      => 'do_not_display',
-                                    :display_marks_earned    => 'do_not_display',
-                                    :display_input           => 'do_not_display',
-                                    :display_expected_output => 'do_not_display',
-                                    :display_actual_output   => 'do_not_display')
+                                    :halts_testing           => false)
     end
     
     should "be able to delete a script file" do
