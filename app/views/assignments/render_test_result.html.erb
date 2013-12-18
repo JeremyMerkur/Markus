@@ -12,12 +12,11 @@
   	  <% test_results.each do |t_result| %>
  	    <li>Test name: <%= t_result.name %></li>
    	    <ul>
- 	      <li>Completion Status: <%= t_result.completion_status %></li>
- 	      <li>Marks_earned: <%= t_result.marks_earned %></li>
-  	      <li>Input description: <%= t_result.input_description %></li>
-  	      <li>Actual output: <%= t_result.actual_output %></li>
-  	      <li>Expected output: <%= t_result.expected_output %></li>
-  	    </ul>
+          <li>Description: <%= t_result.description %></li>
+          <li>Marks_earned: <%= t_result.marks_earned %></li>
+          <li>Marks available: <%= t_result.marks_available %></li>
+          <li>Feedback: <%= t_result.feedback %></li>
+        </ul>
   	  <% end %>
   	  </ul>
   	</li>

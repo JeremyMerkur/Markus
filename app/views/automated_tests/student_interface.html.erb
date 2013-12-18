@@ -108,31 +108,9 @@
             <% test_results.each do |t_result| %>
               <%= I18n.t("automated_tests.test_name") %> <%= t_result.name %>
               <ul>
-                <% if test_script.display_run_status == "display_after_submission" or
-                      (test_script.display_run_status == "display_after_collection" &&
-                      @grouping.is_collected) %>
-                  <li><%= I18n.t("automated_tests.completion_status") %> <%= t_result.completion_status %></li>
-                <% end %>
-                <% if test_script.display_marks_earned == "display_after_submission" or
-                      (test_script.display_marks_earned == "display_after_collection" &&
-                      @grouping.is_collected) %>
+                  <li><%= I18n.t("automated_tests.description") %> <%= t_result.description %></li>
                   <li><%= I18n.t("automated_tests.marks_earned") %> <%= t_result.marks_earned %></li>
-                <% end %>
-                <% if test_script.display_input == "display_after_submission" or
-                      (test_script.display_input == "display_after_collection" &&
-                      @grouping.is_collected) %>
-                  <li><%= I18n.t("automated_tests.input_description") %> <%= t_result.input_description %></li>
-                <% end %>
-                <% if test_script.display_actual_output == "display_after_submission" or
-                      (test_script.display_actual_output == "display_after_collection" &&
-                      @grouping.is_collected) %>
-                  <li><%= I18n.t("automated_tests.actual_output") %> <%= t_result.actual_output %></li>
-                <% end %>
-                <% if test_script.display_expected_output == "display_after_submission" or
-                      (test_script.display_expected_output == "display_after_collection" &&
-                      @grouping.is_collected) %>
-                  <li><%= I18n.t("automated_tests.expected_output") %> <%= t_result.expected_output %></li>
-                <% end %>
+                  <li><%= I18n.t("automated_tests.marks_available") %> <%= t_result.marks_available %></li>
               </ul>
             <% end %>                                   
           </div>
