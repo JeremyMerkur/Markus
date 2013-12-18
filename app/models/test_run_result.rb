@@ -16,6 +16,8 @@ class TestRunResult < ActiveRecord::Base
   belongs_to :submission
   belongs_to :grouping
 
+  has_many :test_script_results
+
   validates_presence_of :grouping   # we require an associated grouping
   validates_associated  :grouping   # grouping need to be valid
 
