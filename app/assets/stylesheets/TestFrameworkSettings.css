@@ -20,3 +20,21 @@ div.error li {
 div.test_script_buttons {
 	padding: 10px;
 }
+
+div.test_script_helper_field {
+	width: 100%;
+	/*float: left;*/
+	overflow: hidden;
+	clear: both;
+}
+
+div.test_script_info {
+	float: left;
+	/*width: 5%;*/
+	padding: 10px;
+}
+
+fieldset.test_script_helper_fieldset {
+	float: left;
+	width: 90%;
+}

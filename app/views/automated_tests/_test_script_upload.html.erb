@@ -9,6 +9,19 @@
 <div class="dragarrows">↕</div>
 <fieldset class="settings_box">
 
+  <legend>
+    <span class='file_name'>
+      <% if is_new != "true" %>
+        <%= test_script.script_name %>
+      <% else %>
+        <%= t('automated_tests.new_test_script_file') %>
+      <% end %>
+    </span>
+    <%= link_to_function (is_new != "true" ? '[+]' : '[-]'), "toggleSettings(this);", :class => "collapse" %>
+  </legend>
+
+  <div class="ajax_message"></div>
+
 <%= form_for test_script,
        :url => update_test_assignment_automated_tests_path,
        :remote => true,
@@ -17,19 +30,6 @@
 
 <% saved = !f.object.new_record? %>
 <% hide = saved ? 'style="display:none;"' : '' %>
-
-  <legend>
-    <span class='file_name'>
-      <% if saved %>
-        <%= f.object.script_name %>
-      <% else %>
-        <%= t('automated_tests.new_test_script_file') %>
-      <% end %>
-    </span>
-    <%= link_to_function (saved ? '[+]' : '[-]'), "toggleSettings(this);", :class => "collapse" %>
-  </legend>
-
-  <div class="ajax_message"></div>
 
   <%= f.hidden_field :seq_num, :value => f.object.seq_num, :class => "seqnum" %>
   <%= hidden_field_tag :test_id, f.object.id, :class => "test_id" %>
@@ -93,17 +93,6 @@
       <%= f.label :script_name, (saved ? t('automated_tests.replace') : t('automated_tests.upload_required').html_safe) %>
       <%= f.file_field :script_name, :size=>"30", :class => 'upload_file' %><br/>
 
-      <% if saved %>
-        <span class="label">
-          <%= link_to(t(:download),
-                      :action => 'download', 
-                      :assignment_id => @assignment.id,
-                      :type => 'script',
-                      :filename => f.object.script_name) %>
-        </span>
-        <br/>
-      <% end %>
-
       <br/><br/>
 
       <%= f.label :run_on_request, t("automated_tests.script_option.run_on_request") %>
@@ -117,8 +106,8 @@
     </div>
   </div>
   <div style="clear:both;" class="test_script_buttons">
-    <%= button_tag I18n.t('automated_tests.submit'), :type => "button", :disable_with => I18n.t('working'), :class => 'alt_submit_test_script' %>
-    <%= button_tag I18n.t('automated_tests.remove_file'), :type => "button", :disable_with => I18n.t('working'), :class => 'alt_remove_test_script', :action => remove_test_assignment_automated_tests_path %>
+    <%= button_tag I18n.t('automated_tests.submit'), :type => "button", :disable_with => I18n.t('working'), :class => 'submit_test_script' %>
+    <%= button_tag I18n.t('automated_tests.remove_file'), :type => "button", :disable_with => I18n.t('working'), :class => 'remove_test_script', :action => remove_test_assignment_automated_tests_path %>
     <%= button_tag I18n.t('automated_tests.add_test_helper_link'), :type => "button", :disable_with => I18n.t('working'), :class => 'add_test_script_helper_button', :action => add_new_test_helper_form_assignment_automated_tests_path %>
     <%= link_to ("<button>" + t(:download) + "</button>").html_safe, download_script_assignment_automated_tests_path(:test_script_id => f.object.id), :method => "get", :path => download_script_assignment_automated_tests_path, :class => 'download_script_button' %>
   </div>
@@ -126,14 +115,17 @@
 
 <% end %>
 
-  <fieldset class="test_script_helper_field">
-    <div>
-      <div class="test_script_helper"></div>
+<div class="test_script_helper_field">
+  <div class="test_script_info" title=<%= raw('"' + I18n.t('automated_tests.test_helper_description') + '"') %>><%= image_tag "icons/information.png" %></div>
+  <fieldset class="test_script_helper_fieldset">
+    <legend>Test Helpers</legend>
+    <div class="test_script_helper">
       <% test_script.test_helpers.sort_by(&:file_name).each do |thf| %>
         <%= render :partial => 'test_helper_file_upload', :locals => {:test_script => test_script, :test_helper_file => thf, :is_new => 'false' } %>
       <% end %>
     </div>
   </fieldset>
+</div>
 
 </fieldset>
 

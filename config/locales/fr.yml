@@ -1186,6 +1186,7 @@ fr:
       test_helper_upload_succeeded: "UPDATE ME"
       test_support_upload_failed: "UPDATE ME"
       test_support_upload_succeeded: "UPDATE ME"
+      test_helper_description: "UPDATE ME"
       replace: "UPDATE ME"
       submit: "UPDATE ME"
       add_test_helper_link: "UPDATE ME"

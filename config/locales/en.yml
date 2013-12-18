@@ -1215,6 +1215,7 @@ en:
       test_helper_upload_succeeded: "Test helper was successfully saved"
       test_support_upload_failed: "Test support was NOT successfully saved:"
       test_support_upload_succeeded: "Test support was successfully saved"
+      test_helper_description: "Test Helpers are additional files that are run with the Test Script (they are placed in the same folder so the Test Script has access to it)"
       private: "private?"
       replace: "Update"
       submit: "Submit"

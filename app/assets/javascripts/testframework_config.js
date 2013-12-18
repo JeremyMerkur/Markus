@@ -163,7 +163,7 @@ function test_script_submit(elem) {
       };
 
   // Bind the custom submit button to avoid unwanted normal form behavior
-  elem.find('.alt_submit_test_script').click(function () {
+  elem.find('.submit_test_script').click(function () {
     elem.find('.ajax_message').empty();
     // Get the form data using the spiffy new HTML5 api
     var formData = new FormData(elem[0]);
@@ -199,7 +199,7 @@ function test_script_submit(elem) {
   });
 
   // Bind the remove-form functionality to the appropriate button
-  elem.find('.alt_remove_test_script').click(function () {
+  elem.find('.remove_test_script').click(function () {
   if (elem.find('.is_new').attr("value") == "true") {
       elem.closest(".test_script").remove();
     } else {
@@ -207,7 +207,7 @@ function test_script_submit(elem) {
       if (conf == true) {      
         var formData = new FormData(elem[0]);
         jQuery.ajax({
-          url: elem.find('.alt_remove_test_script').attr('action'),  //Server script to process data
+          url: elem.find('.remove_test_script').attr('action'),  //Server script to process data
           type: 'POST',
           xhr: function() {  // Custom XMLHttpRequest
               var myXhr = jQuery.ajaxSettings.xhr();

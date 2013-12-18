@@ -50,18 +50,25 @@ def runTest(fileName)
   begin
     # Prepare a directory to execute the test
     run_test = "run_test"
+    FileUtils.rm_rf(run_test) if File.exists?(run_test)
     Dir.mkdir(run_test)
     # Copy the student's code to the execution directory
     Dir.glob("student_code/*") do |f|
-      File.copy(f, run_test)
+      dest = File.join(run_test, File.basename(f))
+      File.delete(dest) if File.exists?(dest)
+      File.copy(f, dest)
     end
     # Copy over the support code
     Dir.glob("test_supports/*") do |f|
-      File.copy(f, run_test)
+      dest = File.join(run_test, File.basename(f))
+      File.delete(dest) if File.exists?(dest)
+      File.copy(f, dest)
     end
     # Copy all the contents of the test script folder to the execution directory
     Dir.glob("test_scripts/#{fileName}_folder/*") do |f|
-      File.copy(f, run_test)
+      dest = File.join(run_test, File.basename(f))
+      File.delete(dest) if File.exists?(dest)
+      File.copy(f, dest)
     end
 
     # basic timeout check
