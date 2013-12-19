@@ -29,7 +29,8 @@
       <div class="block_content">
         <br />
         <div class="sub_block">
-          <% test_script_results = TestScriptResult.order("created_at DESC").find_all_by_grouping_id(@grouping.id) %>
+          <% test_run_results = TestRunResult.order("created_at DESC").find_all_by_grouping_id(@grouping.id) %>
+          
 
           <span class="prop_label"><%= I18n.t("automated_tests.token.tokens_available") %></span>:
           
@@ -42,7 +43,7 @@
           <% end %>
 
           <br/><br/>
-          <span class="prop_label">Status</span>: Last test completed at <%= test_script_results[0].created_at.strftime("%F %R") %>
+          <span class="prop_label">Status</span>: Last test completed at <%= test_run_results[0].created_at.strftime("%F %R") %>
           <br/><br/>
           <span class="prop_label"><%= I18n.t("automated_tests.current_code_revision") %></span>: <%= @grouping.group.repo.get_latest_revision.revision_number%>
           <br/><br/>
@@ -82,40 +83,43 @@
 	<div class="block">
 	  <h2><%= I18n.t("automated_tests.test_results") %></h2>
 	  <br />
-	  <!-- <div class="sub_block">
-	  	<%= raw ( I18n.t("automated_tests.marks_obtained", 
-	   	          	      :marking => "#{@grouping.get_total_test_script_marks * 1.0} / #{@assignment.total_ror_script_marks * 1.0}" ) ) %>
-	  </div> -->
 	  <div id="test_results" class="sub_block">
 
-		  <% test_script_results.each_with_index do |ts_result, index| %>
-		  	<% test_script = TestScript.find(ts_result.test_script_id) %>
+      <% test_run_results.each_with_index do |test_run, index| %>
         <div class="block">
-        <h2><%= I18n.t("automated_tests.test_run_number") %> <%= test_script_results.length - index %></h2>
+          <h2><%= I18n.t("automated_tests.test_run_number") %> <%= test_run_results.length - index %></h2>
           <div class="sub_block">
             <br/>
-            <span class="prop_label"><%= I18n.t("automated_tests.date_run") %></span>: <%= ts_result.created_at.strftime("%F %R") %>
+            <span class="prop_label"><%= I18n.t("automated_tests.date_run") %></span>: <%= test_run.created_at.strftime("%F %R") %>
             <br/>
-            <span class="prop_label"><%= I18n.t("automated_tests.marks_earned") %></span>: <%= ts_result.marks_earned %> / <%= test_script.max_marks %>
-            <br/>
-            <span class="prop_label"><%= I18n.t("automated_tests.code_revision_used") %></span>: <%= ts_result.repo_revision.to_i %>
+            <span class="prop_label"><%= I18n.t("automated_tests.code_revision_used") %></span>: <%= test_run.repo_revision.to_i %>
             <br/><br/>
 
-            <% test_results = TestResult.where(:grouping_id => ts_result.grouping_id, 
-                                               :test_script_id => ts_result.test_script_id, 
-                                               :test_script_result_id => ts_result.id) %>
+            <% test_script_results = TestScriptResult.where(:test_run_result_id => test_run.id,
+                                                            :grouping_id => test_run.grouping_id) %>
 
-            <% test_results.each do |t_result| %>
-              <%= I18n.t("automated_tests.test_name") %> <%= t_result.name %>
-              <ul>
+		        <% test_script_results.each do |ts_result| %>
+		  	      <% test_script = TestScript.find(ts_result.test_script_id) %>
+
+              <% test_results = TestResult.where(:grouping_id => ts_result.grouping_id, 
+                                                 :test_script_id => ts_result.test_script_id, 
+                                                 :test_script_result_id => ts_result.id) %>
+
+              <% test_results.each do |t_result| %>
+                <%= I18n.t("automated_tests.test_name") %> <%= t_result.name %>
+                <ul>
                   <li><%= I18n.t("automated_tests.description") %> <%= t_result.description %></li>
-                  <li><%= I18n.t("automated_tests.marks_earned") %> <%= t_result.marks_earned %></li>
-                  <li><%= I18n.t("automated_tests.marks_available") %> <%= t_result.marks_available %></li>
-              </ul>
-            <% end %>                                   
+                  <li>Mark: <%= t_result.marks_earned %> / <%= t_result.marks_available %></li>
+                  <% if !t_result.feedback.nil? && !t_result.feedback.empty? %>
+                    <li><%= I18n.t("automated_tests.feedback") %> <%= t_result.feedback %></li>
+                  <% end %>
+                </ul>
+              <% end %>                                   
+            <% end %>
           </div>
         </div>
 		  <% end %>
 		</div>
+
 	<% end %>
 <% end %>
