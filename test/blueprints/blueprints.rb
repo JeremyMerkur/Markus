@@ -310,6 +310,12 @@ TestScriptResult.blueprint do
   marks_earned {0}
 end
 
+TestRunResult.blueprint do
+  submission {Submission.make}
+  grouping {Grouping.make}
+  repo_revision {0}
+end
+
 TestFile.blueprint do
   filename {Sham.filename}
   filetype {Sham.filetype}
