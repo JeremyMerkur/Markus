@@ -1,21 +1,16 @@
 ##############################################################
-# This is the model for the database table test_support_files,
-# which each instance of this model represents a test support
-# file submitted by the admin. It can be an input description
-# of a test, an expected output of a test, a code library for
-# testing, or any other file to support the test scripts for
-# testing. MarkUs does not interpret a test support file.
+# This is the model for the database table test_helper,
+# which consists of additional files used in automated testing
+# associated with individual tests.
 #
 # The attributes of test_support_files are:
-#   file_name:      name of the support file. 
-#   assignment_id:  id of the assignment
-#   description:    a brief description of the purpose of the
-#                   file.
+#   file_name:      name of the helpert file
+#   test_script_id:  id of the test script
 #############################################################
 
-class TestSupportFile < ActiveRecord::Base
-  belongs_to :assignment
-  
+class TestHelper < ActiveRecord::Base
+  belongs_to :test_script
+
   # Run sanitize_filename before saving to the database
   before_save :sanitize_filename
   
@@ -28,12 +23,11 @@ class TestSupportFile < ActiveRecord::Base
   # Run delete_file method after removal from db
   after_destroy :delete_file
   
-  validates_presence_of :assignment
-  validates_associated :assignment
+  validates_presence_of :test_script
+  validates_associated :test_script
   
   validates_presence_of :file_name
-  validates_presence_of :description, :if => "description.nil?"
-  
+
   # validates the uniqueness of file_name for the same assignment
   validates_each :file_name do |record, attr, value|
     # Extract file_name
@@ -42,17 +36,23 @@ class TestSupportFile < ActiveRecord::Base
       name = value.original_filename
     end
 
-    dup_file = TestSupportFile.find_by_assignment_id_and_file_name(record.assignment_id, name)
-    if dup_file && dup_file.id != record.id
+    dup_file = TestHelper.find_by_test_script_id_and_file_name(record.test_script_id, name)
+    if  record.test_script
+      script_name = record.test_script.script_name
+    else
+      script_name = ""
+    end
+    if dup_file && dup_file.id != record.id || name == script_name
       record.errors.add attr, ' ' + name + ' ' + I18n.t("automated_tests.filename_exists")
     end
+
   end
-  
-  # Address of the test support file
+
+  # Address of the test helper file
   def file_path
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-    test_support = File.join(test_dir, self.file_name)
-    return test_support
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
+    test_helper = File.join(test_dir, self.test_script_id.to_s, self.file_name)
+    return test_helper
   end
 
   # All callback methods are protected methods
@@ -83,8 +83,8 @@ class TestSupportFile < ActiveRecord::Base
       # If the filenames are different, delete the old file
       if self.file_name_changed?
         # Delete old file
-        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-        path = File.join(test_dir, self.file_name_was)
+        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
+        path = File.join(test_dir, self.test_script_id.to_s, self.file_name_was)
         File.delete(path) if File.exist?(path)
       end
     end
@@ -95,10 +95,10 @@ class TestSupportFile < ActiveRecord::Base
     # Execute if the full file path exists (indicating a new File object)
     if @file_path
       name = self.file_name
-      test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+      test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
 
       # Create the file path
-      path = File.join(test_dir, name)
+      path = File.join(test_dir, self.test_script_id.to_s, name)
 
       # Read and write the file (overwrite if it exists)
       File.open(path, "w+") { |f| f.write(@file_path.read) }

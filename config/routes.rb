@@ -87,6 +87,18 @@ Markus::Application.routes.draw do
         get 'move_criterion'
         get 'tokens'
         post 'update_tokens'
+        get 'add_new_test_form'
+        get 'add_new_test_support_form'
+        post 'add_new_test_helper_form'
+        put 'update_test'
+        put 'remove_test'
+        put 'update_support'
+        put 'remove_support'
+        put 'update_helper'
+        put 'remove_helper'
+        get 'download_script'
+        get 'download_helper'
+        get 'download_support'
       end
     end
 

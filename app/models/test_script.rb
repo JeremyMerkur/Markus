@@ -26,12 +26,6 @@
 #                       when a user sends a test request
 #   halts_testing:      a boolean indicates if this script halts
 #                       the test run when error occurs
-#   display_description
-#   display_run_status
-#   display_marks_earned
-#   display_input
-#   display_expected_output
-#   display_actual_output
 #
 #   The 6 attributes start with "display" have similar usages.
 #   Each has a value of one of {"do_not_display",
@@ -41,10 +35,13 @@
 #   to the student.
 ##############################################################
 
+require 'fileutils'
+
 class TestScript < ActiveRecord::Base
   belongs_to :assignment
   has_many :test_results, :dependent => :delete_all
   has_many :test_script_results, :dependent => :delete_all
+  has_many :test_helpers, :dependent => :destroy
   
   # Run sanitize_filename before saving to the database
   before_save :sanitize_filename
@@ -56,7 +53,7 @@ class TestScript < ActiveRecord::Base
   after_save :write_file
   
   # Run delete_file method after removal from db
-  after_destroy :delete_file
+  after_destroy :delete_file_and_folder
 
   validates_presence_of :assignment
   validates_associated :assignment
@@ -96,21 +93,20 @@ class TestScript < ActiveRecord::Base
   validates_numericality_of :seq_num
   validates_numericality_of :max_marks, :only_integer => true, :greater_than_or_equal_to => 0
 
-  validates_presence_of :display_description
-  validates_presence_of :display_run_status
-  validates_presence_of :display_marks_earned
-  validates_presence_of :display_input
-  validates_presence_of :display_expected_output
-  validates_presence_of :display_actual_output
-  
-  display_option = %w(do_not_display display_after_submission display_after_collection)
-  validates_inclusion_of :display_description, :in => display_option
-  validates_inclusion_of :display_run_status, :in => display_option
-  validates_inclusion_of :display_input, :in => display_option
-  validates_inclusion_of :display_marks_earned, :in => display_option
-  validates_inclusion_of :display_expected_output, :in => display_option
-  validates_inclusion_of :display_actual_output, :in => display_option
-  
+  # Address of the test script file
+  def file_path
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+    test_script = File.join(test_dir, self.id.to_s, self.script_name)
+    return test_script
+  end
+
+  # Address of the folder where the test and its helpers are
+  def folder_path
+    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+    script_folder = File.join(test_dir, self.id.to_s)
+    return script_folder
+  end
+
   # All callback methods are protected methods
   protected
   
@@ -139,7 +135,9 @@ class TestScript < ActiveRecord::Base
       # If the filenames are different, delete the old file
       if self.script_name_changed?
         # Delete old file
-        self.delete_file
+        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+        path = File.join(test_dir, self.id.to_s, self.script_name_was)
+        File.delete(path) if File.exist?(path)
       end
     end
   end
@@ -150,24 +148,26 @@ class TestScript < ActiveRecord::Base
     if @file_path
       name = self.script_name
       test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-
+      # Create the directory if it doesn't already exists
+      dir_path = File.join(test_dir, self.id.to_s)
+      Dir.mkdir(dir_path) unless File.directory?(dir_path)
       # Create the file path
-      path = File.join(test_dir, name)
-
+      path = File.join(test_dir, self.id.to_s, name)
       # Read and write the file (overwrite if it exists)
       File.open(path, "w+") { |f| f.write(@file_path.read) }
     end
   end
 
   def delete_file
-    # Automated tests repository to delete from
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-
-    # Delete file if it exists
-    path = File.join(test_dir, self.script_name)
-    if File.exist?(path)
-      File.delete(path)
+    if File.exist?(self.file_path)
+      File.delete(self.file_path)
     end
+  end
+
+  # Callback to cleanup the script and the folder
+  def delete_file_and_folder
+    self.delete_file
+    FileUtils.rm_rf(self.folder_path) if File.directory?(self.folder_path)
   end
 
 end

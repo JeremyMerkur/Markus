@@ -388,4 +388,222 @@ class AutomatedTestsController < ApplicationController
     end
   end
 
+  # Called by the "Add Test Script File" button, renders a form block
+  # for the user to enter information into
+  def add_new_test_form
+    new_test_script = TestScript.new
+    respond_to do |format|
+      format.html {render(:partial => 'test_script_upload',
+                     :locals => {:test_script => new_test_script,
+                      :is_new => 'true'})}
+    end
+  end
+
+  # Called by the "Add Test Support File" button
+  def add_new_test_support_form
+    assignment = Assignment.find(params[:assignment_id])
+    new_test_support = TestSupportFile.new
+    respond_to do |format|
+      format.html {render(:partial => 'test_support_file_upload',
+                     :locals => {:assignment => assignment, 
+                       :test_support_file => new_test_support,
+                       :is_new => "true"})}
+    end
+  end
+
+  def add_new_test_helper_form
+      assignment = Assignment.find(params[:assignment_id])
+      test_script = TestScript.find(params[:test_script_id])
+      new_test_helper = TestHelper.new
+      respond_to do |format|
+        format.html {render(:partial => 'test_helper_file_upload',
+                      :locals => {
+                        :test_script => test_script,
+                        :test_helper_file => new_test_helper,
+                        :is_new => "true"})}
+      end
+    end
+
+  # Controller action to handle the updating and creation of new
+  # test script elements in the database
+  def update_test
+    assignment = Assignment.find(params[:assignment_id])
+    if params[:is_new] == 'true'
+      # make new test
+      test = assignment.test_scripts.build(params[:test_script])
+      if (params[:FILE_UPLOAD])
+        test.script_name = params[:FILE_UPLOAD]
+      end
+    else
+      # find old test
+      test = TestScript.find(params[:test_id])
+      test.attributes=(params[:test_script])
+      if (params[:FILE_UPLOAD])
+        test.script_name = params[:FILE_UPLOAD]
+      end
+    end
+
+    respond_to do |format|
+      if test.save()
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => true,
+              :message => I18n.t('automated_tests.test_script_upload_succeeded'),
+              :info => test.id.to_s,
+              :errors => Array.new
+              })}
+      else
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => false,
+              :message => I18n.t('automated_tests.test_script_upload_failed'),
+              :info => "",
+              :errors => test.errors.full_messages()
+              })}
+      end
+    end
+  end
+
+  # Controller action to delete a test script
+  def remove_test
+    TestScript.destroy(params[:test_id])
+    respond_to do |format|
+      format.html { render(:text => 'Success') }
+    end
+  end
+
+  # Controller action to handle the updating and creation of new
+  # test support files in the database
+  def update_support
+    assignment = Assignment.find(params[:assignment_id])
+    if params[:is_new] == 'true'
+      # make new support
+      test = assignment.test_support_files.build(params[:test_support_file])
+      if (params[:FILE_UPLOAD])
+        test.file_name = params[:FILE_UPLOAD]
+      end
+    else
+      # find old test
+      test = TestSupportFile.find(params[:support_id])
+      test.attributes=(params[:test_support_file])
+      if (params[:FILE_UPLOAD])
+        test.file_name = params[:FILE_UPLOAD]
+      end
+    end
+
+
+
+    respond_to do |format|
+      if test.save()
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => true,
+              :message => I18n.t('automated_tests.test_support_upload_succeeded'),
+              :info => test.id.to_s,
+              :errors => Array.new
+              })}
+      else
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => false,
+              :message => I18n.t('automated_tests.test_support_upload_failed'),
+              :info => "",
+              :errors => test.errors.full_messages()
+              })}
+      end
+    end
+  end
+
+  # Controller action to delete a test support file
+  def remove_support
+    TestSupportFile.destroy(params[:support_id])
+    respond_to do |format|
+      format.html { render(:text => 'Success') }
+    end
+  end
+
+  # Controller action to handle the updating and creation of new
+  # test helper files in the database
+  def update_helper
+    test_script = TestScript.find(params[:test_script_id])
+    if params[:is_new] == 'true'
+      # make new helper
+      helper = test_script.test_helpers.build()
+      if (params[:FILE_UPLOAD])
+        helper.file_name = params[:FILE_UPLOAD]
+      end
+    else
+      # find old helper
+      helper = TestHelper.find(params[:helper_id])
+      if (params[:FILE_UPLOAD])
+        helper.file_name = params[:FILE_UPLOAD]
+      end
+    end
+
+    respond_to do |format|
+      if helper.save()
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => true,
+              :message => I18n.t('automated_tests.test_helper_upload_succeeded'),
+              :info => helper.id.to_s,
+              :errors => Array.new
+              })}
+      else
+        format.html { render(:partial => 'test_update_response',
+            :locals => {
+              :success => false,
+              :message => I18n.t('automated_tests.test_helper_upload_failed'),
+              :info => "",
+              :errors => helper.errors.full_messages()
+              })}
+      end
+    end
+  end
+
+  # Controller action to delete a test helper file
+  def remove_helper
+    TestHelper.destroy(params[:helper_id])
+    respond_to do |format|
+      format.html { render(:text => 'Success') }
+    end
+  end
+
+
+  def download_script
+    script = TestScript.find(params[:test_script_id])
+    if File.exists?(script.file_path)
+      file_contents = IO.read(script.file_path)
+        send_file(
+        script.file_path,
+        :type => ( SubmissionFile.is_binary?(file_contents) ? 'application/octet-stream':'text/plain' ),
+        :x_sendfile => true
+        )
+    end
+  end
+
+  def download_helper
+    helper = TestHelper.find(params[:test_helper_id])
+    if File.exists?(helper.file_path)
+      file_contents = IO.read(helper.file_path)
+        send_file(
+        helper.file_path,
+        :type => ( SubmissionFile.is_binary?(file_contents) ? 'application/octet-stream':'text/plain' ),
+        :x_sendfile => true
+        )
+    end
+  end
+
+  def download_support
+    support = TestSupportFile.find(params[:test_support_id])
+    if File.exists?(support.file_path)
+      file_contents = IO.read(support.file_path)
+        send_file(
+        support.file_path,
+        :type => ( SubmissionFile.is_binary?(file_contents) ? 'application/octet-stream':'text/plain' ),
+        :x_sendfile => true
+        )
+    end
+  end
+
 end
