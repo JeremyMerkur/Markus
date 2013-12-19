@@ -45,6 +45,7 @@ class Grouping < ActiveRecord::Base
   
   has_many :test_results, :dependent => :destroy
   has_many :test_script_results, :dependent => :destroy
+  has_many :test_run_results, :dependent => :destroy
 
   scope :approved_groupings, :conditions => {:admin_approved => true}
 

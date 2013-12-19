@@ -22,6 +22,7 @@ class TestScriptResult < ActiveRecord::Base
   belongs_to :submission
   belongs_to :test_script
   belongs_to :grouping
+  belongs_to :test_run_result
 
   has_many :test_results
 

@@ -4,7 +4,7 @@
 
   <% # HTML for Student Testing Interface %> 
 <div class="block">
-  <h2><%= I18n.t("automated_tests.title") %></h2>
+  <h2><%= I18n.t("automated_tests.request_test_run") %></h2>
   
   <% if flash[:failure] && !flash[:failure].empty? %>
     <div class="notice">
@@ -17,106 +17,109 @@
       <%=flash[:notice]%>
     </div>
   <% end %>
-<% if @assignment.enable_test %>
-  <% if @grouping.nil? %>
-    <div class="sub_block">
-      <br />
-        <%= I18n.t("automated_tests.need_group_for_test") %>
-      <br />
-    </div>
+
+  <% if @assignment.enable_test %>
+    <% if @grouping.nil? %>
+      <div class="sub_block">
+        <br />
+          <%= I18n.t("automated_tests.need_group_for_test") %>
+        <br />
+      </div>
+    <% else %>
+      <div class="block_content">
+        <br />
+        <div class="sub_block">
+          <% test_run_results = TestRunResult.order("created_at DESC").find_all_by_grouping_id(@grouping.id) %>
+          
+
+          <span class="prop_label"><%= I18n.t("automated_tests.token.tokens_available") %></span>:
+          
+          <% if @assignment.unlimited_tokens %>
+            <%= I18n.t("automated_tests.token.unlimited") %>
+          <% elsif @token.nil? %>
+            <%= I18n.t("automated_tests.token.tokens_not_given_yet") %>
+          <% else %>
+            <%= %{$token.tokens} / %{@assignment.tokens_per_day} %>
+          <% end %>
+
+          <br/><br/>
+          <span class="prop_label">Status</span>: Last test completed at <%= test_run_results[0].created_at.strftime("%F %R") %>
+          <br/><br/>
+          <span class="prop_label"><%= I18n.t("automated_tests.current_code_revision") %></span>: <%= @grouping.group.repo.get_latest_revision.revision_number%>
+          <br/><br/>
+
+          <% if @assignment.unlimited_tokens || (!@token.nil? && @token.tokens > 0) %>
+            <% if @grouping.assignment.submission_rule.can_collect_now? %>
+              <%= I18n.t("automated_tests.due_date_is_passed") %>
+              <br />
+            <% else %>
+              <br />
+              <%= link_to I18n.t("automated_tests.run_tests"),
+                                {:controller => 'automated_tests',
+                                 :action => 'request_test_run',
+                                 :id => @assignment.id,
+                                 :grouping_id => @grouping.id,
+                                 :revision_number => @revision_number},
+                                 :class => "button" %>
+              <br />
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
   <% else %>
     <div class="block_content">
       <h3><%= I18n.t("automated_tests.information") %></h3>
       <div class="sub_block">
-        <% if @assignment.unlimited_tokens %>
-            <%= raw( I18n.t("automated_tests.token.unlimited_tokens") ) %>
-        <% else %>
-          <%= raw( I18n.t("automated_tests.token.tokens_per_day",
-                           :tokens => @assignment.tokens_per_day) ) %>
-        <% end %>
+        <%= I18n.t("automated_tests.testing_disabled") %>
       </div>
-      <br />
-      <% if !@assignment.unlimited_tokens %>
-        <div class="sub_block">
-          <% if @token.nil? %>
-            <%= raw ( I18n.t("automated_tests.token.tokens_not_given_yet") ) %>
-          <% else %>
-            <% if @token.tokens == 0 %>
-              <%= raw( I18n.t("automated_tests.token.tokens_no_more_available") ) %>
-            <% else %>
-              <%= raw( I18n.t("automated_tests.token.tokens_available",
-                              :tokens => @token.tokens) ) %>
-            <% end %>
-          <% end %>
-          <br />
-        </div>
-      <% end %>
-      <br />
-      <% if @assignment.unlimited_tokens || (!@token.nil? && @token.tokens > 0) %>
-        <h3><%= I18n.t("automated_tests.run_tests") %></h3>
-        <% if @grouping.assignment.submission_rule.can_collect_now? %>
-          <%= I18n.t("automated_tests.due_date_is_passed") %>
-          <br />
-        <% else %>
-          <%= I18n.t("automated_tests.need_one_file") %>
-          <br />
-          <br />
-          <%= link_to I18n.t("automated_tests.run_tests"), {:controller => 'automated_tests', :action => 'request_test_run', :id => @assignment.id, :grouping_id => @grouping.id , :revision_number => @revision_number}, :class => "button"%>
-          <br />
-        <% end %>
-      <% end %>
-    <% end %>
     </div>
-  </div>
+  <% end %>
+</div>
 
+<% if @assignment.enable_test && !@grouping.nil? %>
 	<% if !@test_script_results.nil? %>
 	<div class="block">
 	  <h2><%= I18n.t("automated_tests.test_results") %></h2>
 	  <br />
-	  <div class="sub_block">
-	  	<%= raw ( I18n.t("automated_tests.marks_obtained", 
-	   	          	      :marking => "#{@grouping.get_total_test_script_marks * 1.0} / #{@assignment.total_ror_script_marks * 1.0}" ) ) %>
-	  </div>
 	  <div id="test_results" class="sub_block">
-		  <% test_script_results = TestScriptResult.order("created_at DESC").find_all_by_grouping_id(@grouping.id) %>
-		
-		  <ul>
-		  <% test_script_results.each do |ts_result| %>
-		  	<% test_script = TestScript.find(ts_result.test_script_id) %>
-		  	<li>
-		  	  <%= I18n.t("automated_tests.script_name") %> <%= test_script.script_name %>
-		  	  <ul>
-		  	  <li><%= I18n.t("automated_tests.marks_earned") %> <%= ts_result.marks_earned %></li>
-		  	  <li><%= I18n.t("automated_tests.date_run") %> <%= ts_result.created_at.strftime("%F %R") %></li>
-		  	  <li><%= I18n.t("automated_tests.revision_used") %> <%= ts_result.repo_revision.to_i %></li>
-		   	  <% test_results = TestResult.where(:grouping_id => ts_result.grouping_id, 
-		   	                                     :test_script_id => ts_result.test_script_id, 
-		   	                                     :test_script_result_id => ts_result.id) %>
-		  	  <% test_results.each do |t_result| %>
-		 	      <li><%= I18n.t("automated_tests.test_name") %> <%= t_result.name %></li>
-		   	    <ul>
-			 	      <% if test_script.display_marks_earned == "display_after_submission" or
-			   	      		(test_script.display_marks_earned == "display_after_collection" &&
-			   	      		@grouping.is_collected) %>
-			 	        <li><%= I18n.t("automated_tests.marks_earned") %> <%= t_result.marks_earned %></li>
-                <li><%= "marks available:" %> <%= t_result.marks_available %></li>
-			 	      <% end %>
-		  	    </ul>
-		  	    <ul> </ul>
-		  	  <% end %>
-		  	  </ul>
-		  	</li>
-		  <% end %>
-		  </ul>
-		</div>
-	<% end %>
-<% else %>
-  <div class="block_content">
-    <h3><%= I18n.t("automated_tests.information") %></h3>
-    <div class="sub_block">
-      <%= I18n.t("automated_tests.testing_disabled") %>
-    </div>
-  </div>
-<% end %>
-</div>
 
+      <% test_run_results.each_with_index do |test_run, index| %>
+        <div class="block">
+          <h2><%= I18n.t("automated_tests.test_run_number") %> <%= test_run_results.length - index %></h2>
+          <div class="sub_block">
+            <br/>
+            <span class="prop_label"><%= I18n.t("automated_tests.date_run") %></span>: <%= test_run.created_at.strftime("%F %R") %>
+            <br/>
+            <span class="prop_label"><%= I18n.t("automated_tests.code_revision_used") %></span>: <%= test_run.repo_revision.to_i %>
+            <br/><br/>
+
+            <% test_script_results = TestScriptResult.where(:test_run_result_id => test_run.id,
+                                                            :grouping_id => test_run.grouping_id) %>
+
+		        <% test_script_results.each do |ts_result| %>
+		  	      <% test_script = TestScript.find(ts_result.test_script_id) %>
+
+              <% test_results = TestResult.where(:grouping_id => ts_result.grouping_id, 
+                                                 :test_script_id => ts_result.test_script_id, 
+                                                 :test_script_result_id => ts_result.id) %>
+
+              <% test_results.each do |t_result| %>
+                <%= I18n.t("automated_tests.test_name") %> <%= t_result.name %>
+                <ul>
+                  <li><%= I18n.t("automated_tests.description") %> <%= t_result.description %></li>
+                  <li>Mark: <%= t_result.marks_earned %> / <%= t_result.marks_available %></li>
+                  <% if !t_result.feedback.nil? && !t_result.feedback.empty? %>
+                    <li><%= I18n.t("automated_tests.feedback") %> <%= t_result.feedback %></li>
+                  <% end %>
+                </ul>
+              <% end %>                                   
+            <% end %>
+          </div>
+        </div>
+		  <% end %>
+		</div>
+
+	<% end %>
+<% end %>
