@@ -44,10 +44,11 @@
 
           <br/><br/>
 
+          <span class="prop_label"><%= I18n.t("automated_tests.status") %></span>:
           <% if !test_run_results.empty? %>
-            <span class="prop_label">Status</span>: Last test completed at <%= test_run_results[0].created_at.strftime("%F %R") %>
+             <%= I18n.t("automated_tests.last_test_completed") %> <%= test_run_results[0].created_at.strftime("%F %R") %>
           <% else %>
-            <span class="prop_label">Status</span>: <%= I18n.t("automated_tests.no_test_runs") %>
+             <%= I18n.t("automated_tests.no_test_runs") %>
           <% end %>
           <br/><br/>
 
