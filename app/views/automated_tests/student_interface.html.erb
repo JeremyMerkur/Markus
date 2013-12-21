@@ -43,8 +43,14 @@
           <% end %>
 
           <br/><br/>
-          <span class="prop_label">Status</span>: Last test completed at <%= test_run_results[0].created_at.strftime("%F %R") %>
+
+          <% if !test_run_results.empty? %>
+            <span class="prop_label">Status</span>: Last test completed at <%= test_run_results[0].created_at.strftime("%F %R") %>
+          <% else %>
+            <span class="prop_label">Status</span>: <%= I18n.t("automated_tests.no_test_runs") %>
+          <% end %>
           <br/><br/>
+
           <span class="prop_label"><%= I18n.t("automated_tests.current_code_revision") %></span>: <%= @grouping.group.repo.get_latest_revision.revision_number%>
           <br/><br/>
 
