@@ -194,7 +194,7 @@ function test_script_submit(elem) {
 
   // Bind the file upload input so that it updates UI elements and a name tag
   elem.find('.upload_file').change(function () {
-    elem.find('.file_name').text(this.value);
+    elem.closest('.settings_box').find('.file_name').text(this.value);
     elem.find('.upload_file').attr('file_name', this.value);
   });
 

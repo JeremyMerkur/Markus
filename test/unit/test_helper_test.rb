@@ -10,7 +10,16 @@ class TestHelperTest < ActiveSupport::TestCase
   # create
   context "A valid test helper" do
     should "return true when a valid file is created" do
-      @helper = TestHelper.make(:file_name => 'input.txt')
+      @asst = Assignment.make
+      @testscript = TestScript.make(:assignment_id           => @asst.id,
+                                    :seq_num                 => 1,
+                                    :script_name             => 'script.sh',
+                                    :description             => 'This is a bash script file',
+                                    :max_marks               => 5,
+                                    :run_on_submission       => true,
+                                    :run_on_request          => true,
+                                    :halts_testing           => false)
+      @helper = TestHelper.make(:file_name => 'input.txt', :test_script => @testscript)
       assert @helper.valid?
       assert @helper.save
     end
@@ -20,8 +29,17 @@ class TestHelperTest < ActiveSupport::TestCase
   context "An invalid test helper" do
     
     setup do
-      @validhelper = TestHelper.make(:file_name => 'valid')
-      @invalidhelper = TestHelper.make(:file_name => 'invalid')
+      @asst = Assignment.make
+      @testscript = TestScript.make(:assignment_id           => @asst.id,
+                                    :seq_num                 => 1,
+                                    :script_name             => 'script.sh',
+                                    :description             => 'This is a bash script file',
+                                    :max_marks               => 5,
+                                    :run_on_submission       => true,
+                                    :run_on_request          => true,
+                                    :halts_testing           => false)
+      @validhelper = TestHelper.make(:file_name => 'valid', :test_script => @testscript)
+      @invalidhelper = TestHelper.make(:file_name => 'invalid', :test_script => @testscript)
     end
     
     should "return false when the file_name is blank" do
@@ -30,8 +48,6 @@ class TestHelperTest < ActiveSupport::TestCase
     end
 
     should "return false when the file_name already exists" do
-      @validhelper.test_script_id = 1
-      @invalidhelper.test_script_id = 1
       @invalidhelper.file_name = 'valid'
       assert !@invalidhelper.valid?, "helper expected to be invalid when the file name already exists in the same test"
     end
@@ -41,7 +57,16 @@ class TestHelperTest < ActiveSupport::TestCase
   # delete
   context "MarkUs" do
     should "be able to delete a test support file" do
-      @helper = TestHelper.make(:file_name => 'input.txt')
+      @asst = Assignment.make
+      @testscript = TestScript.make(:assignment_id           => @asst.id,
+                                    :seq_num                 => 1,
+                                    :script_name             => 'script.sh',
+                                    :description             => 'This is a bash script file',
+                                    :max_marks               => 5,
+                                    :run_on_submission       => true,
+                                    :run_on_request          => true,
+                                    :halts_testing           => false)
+      @helper = TestHelper.make(:file_name => 'input.txt', :test_script => @testscript)
       assert @helper.valid?
       assert @helper.destroy
     end

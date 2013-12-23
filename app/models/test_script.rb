@@ -95,8 +95,8 @@ class TestScript < ActiveRecord::Base
 
   # Address of the test script file
   def file_path
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-    test_script = File.join(test_dir, self.id.to_s, self.script_name)
+    # test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
+    test_script = File.join(self.folder_path, self.script_name)
     return test_script
   end
 
@@ -119,11 +119,11 @@ class TestScript < ActiveRecord::Base
 
       # Sanitize filename:
       self.script_name.strip!
-      self.script_name.gsub(/^(..)+/, ".")
-      # replace spaces with
-      self.script_name.gsub(/[^\s]/, "")
-      # replace all non alphanumeric, underscore or periods with underscore
-      self.script_name.gsub(/^[\W]+$/, '_')
+      # replace spaces with underscores
+      self.script_name.gsub!(/[\s]/, "_")
+      # replace non non-word characters with underscores
+      self.script_name.gsub!(/[\W]+/, '_')
+
     end
   end
 
@@ -134,9 +134,7 @@ class TestScript < ActiveRecord::Base
     if @file_path
       # If the filenames are different, delete the old file
       if self.script_name_changed?
-        # Delete old file
-        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-        path = File.join(test_dir, self.id.to_s, self.script_name_was)
+        path = File.join(File.dirname(self.file_path), self.script_name_was)
         File.delete(path) if File.exist?(path)
       end
     end
@@ -146,15 +144,8 @@ class TestScript < ActiveRecord::Base
   def write_file
     # Execute if the full file path exists (indicating a new File object)
     if @file_path
-      name = self.script_name
-      test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, assignment.short_identifier)
-      # Create the directory if it doesn't already exists
-      dir_path = File.join(test_dir, self.id.to_s)
-      Dir.mkdir(dir_path) unless File.directory?(dir_path)
-      # Create the file path
-      path = File.join(test_dir, self.id.to_s, name)
-      # Read and write the file (overwrite if it exists)
-      File.open(path, "w+") { |f| f.write(@file_path.read) }
+      Dir.mkdir(self.folder_path) unless File.directory?(self.folder_path)
+      File.open(self.file_path, "w+") { |f| f.write(@file_path.read) }
     end
   end
 
