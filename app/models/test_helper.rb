@@ -37,7 +37,7 @@ class TestHelper < ActiveRecord::Base
     end
 
     dup_file = TestHelper.find_by_test_script_id_and_file_name(record.test_script_id, name)
-    if  record.test_script
+    if record.test_script
       script_name = record.test_script.script_name
     else
       script_name = ""
@@ -50,8 +50,8 @@ class TestHelper < ActiveRecord::Base
 
   # Address of the test helper file
   def file_path
-    test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
-    test_helper = File.join(test_dir, self.test_script_id.to_s, self.file_name)
+    # test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
+    test_helper = File.join(self.test_script.folder_path, self.file_name)
     return test_helper
   end
 
@@ -67,11 +67,10 @@ class TestHelper < ActiveRecord::Base
 
       # Sanitize filename:
       self.file_name.strip!
-      self.file_name.gsub(/^(..)+/, ".")
-      # replace spaces with
-      self.file_name.gsub(/[^\s]/, "")
-      # replace all non alphanumeric, underscore or periods with underscore
-      self.file_name.gsub(/^[\W]+$/, '_')
+      # replace spaces with underscores
+      self.file_name.gsub!(/[\s]/, "_")
+      # replace non non-word characters with underscores
+      self.file_name.gsub!(/[\W]+/, '_')
     end
   end
 
@@ -82,9 +81,7 @@ class TestHelper < ActiveRecord::Base
     if @file_path
       # If the filenames are different, delete the old file
       if self.file_name_changed?
-        # Delete old file
-        test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
-        path = File.join(test_dir, self.test_script_id.to_s, self.file_name_was)
+        path = File.join(File.dirname(self.file_path), self.file_name_was)
         File.delete(path) if File.exist?(path)
       end
     end
@@ -94,14 +91,7 @@ class TestHelper < ActiveRecord::Base
   def write_file
     # Execute if the full file path exists (indicating a new File object)
     if @file_path
-      name = self.file_name
-      test_dir = File.join(MarkusConfigurator.markus_config_automated_tests_repository, test_script.assignment.short_identifier)
-
-      # Create the file path
-      path = File.join(test_dir, self.test_script_id.to_s, name)
-
-      # Read and write the file (overwrite if it exists)
-      File.open(path, "w+") { |f| f.write(@file_path.read) }
+      File.open(self.file_path, "w+") { |f| f.write(@file_path.read) }
     end
   end
 
