@@ -224,16 +224,6 @@ class AutomatedTestsController < ApplicationController
     # ATE_SIMPLE_UI end
     end
 
-
-    if !groupings.empty?
-      assignment.set_results_average
-    end
-
-    #if changed > 0
-     # flash[:success] = I18n.t('results.successfully_changed', {:changed => changed})
-     # m_logger = MarkusLogger.instance
-     # m_logger.log(log_message)
-    #end
     flash[:errors] = errors
 
     redirect_to :action => 'tokens',
