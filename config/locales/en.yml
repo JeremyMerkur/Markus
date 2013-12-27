@@ -1272,6 +1272,7 @@ en:
         test_grades: "Test Grade Breakdown"
         test_feedback: "Test Feedback"
         repository: "Repository"
+        revision_used: "Repository Revision"
         group_name: "Group Name"
         show_all: "Show All"
         show_unmarked: "Show Unmarked"
