@@ -117,7 +117,7 @@
 		   	                                     :test_script_id => test_script_results.test_script_id, 
 		   	                                     :test_script_result_id => test_script_results.id) %>
 			
-						<% if !test_results.nil? %>
+						<% if test_results.nil? || test_results.length == 0 %>
 							<li>There was no feedback provided</li>
 						<% else %>
 							<li><%= I18n.t("automated_tests.description") %> <%= t_result.description %></li>
@@ -127,6 +127,7 @@
 								<% if !t_result.feedback.nil? && !t_result.feedback.empty? %>
 									<li><%= I18n.t("automated_tests.feedback") %> <%= t_result.feedback %></li>
 								<% end %>
+							<% end %>
 						<% end %>
   
 					</ul>
