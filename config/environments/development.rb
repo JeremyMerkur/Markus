@@ -239,10 +239,10 @@ Markus::Application.configure do
   # $NUMBER_TEST_SERVERS.
   # SSH Login must be set up before running MarkUs, so that MarkUs
   # can connect to all test servers without a password. 
-  ATE_TEST_SERVER_HOSTS = 'c0palerm@cdf.toronto.edu'
+  ATE_TEST_SERVER_HOSTS = ''
   
   # The name and the path of the test runner script on the test server.
-  ATE_TEST_RUNNER_NAME = 'testrunner/testrunner.rb'
+  ATE_TEST_RUNNER_NAME = ''
   
   ###################################################################
   # The name and the path of the directory where the test runs.
