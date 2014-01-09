@@ -120,10 +120,9 @@
 						<% if test_results.nil? || test_results.length == 0 %>
 							<li>There was no feedback provided</li>
 						<% else %>
-							<li><%= I18n.t("automated_tests.description") %> <%= t_result.description %></li>
-							<li><%= I18n.t("automated_tests.marks_earned") %> <%= t_result.marks_earned %> / <%= t_result.marks_available %></li>
-						
-							<% test_results.each do |t_result| %>
+              <% test_results.each do |t_result| %>
+  							<li><%= I18n.t("automated_tests.description") %> <%= t_result.description %></li>
+  							<li><%= I18n.t("automated_tests.marks_earned") %> <%= t_result.marks_earned %> / <%= t_result.marks_available %></li>						
 								<% if !t_result.feedback.nil? && !t_result.feedback.empty? %>
 									<li><%= I18n.t("automated_tests.feedback") %> <%= t_result.feedback %></li>
 								<% end %>
