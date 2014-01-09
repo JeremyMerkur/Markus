@@ -1,0 +1,142 @@
+<% if grouping.non_rejected_student_memberships.size > 0 %>
+
+<tr
+<% if grouping.is_collected? %>
+  style="background-color: #90EE90"
+<% end %>>
+<% test_script_results = TestScriptResult.where(:grouping_id => grouping.id).order("created_at DESC").find(:first) %>
+<td>
+  <input type="checkbox"
+         name="groupings[]"
+         class="ap_selectable"
+         id="grouping_<%= grouping.id %>"
+         value="<%= grouping.id %>" />
+
+</td>
+<td>
+  <% if !grouping.has_submission? %>
+    <% if Time.zone.now >=
+    assignment.submission_rule.calculate_grouping_collection_time(grouping) %>
+      <%= link_to h(grouping.group.group_name),
+                  collect_and_begin_grading_assignment_submission_path(
+                      assignment.id,
+                      grouping.id) %>
+    <% else %>
+      <%= h(grouping.group.group_name) %>
+    <% end %>
+  <% elsif !grouping.is_collected %>
+    <%= link_to h(grouping.group.group_name),
+                collect_and_begin_grading_assignment_submission_path(
+                      assignment.id,
+                      grouping.id) %>
+  <% elsif grouping.current_submission_used.remark_submitted? %>
+    <%= link_to h(grouping.group.group_name),
+                 edit_assignment_submission_result_path(
+                   assignment.id,
+                   grouping.current_submission_used.id,
+                   grouping.current_submission_used.remark_result) %>
+  <% else %>
+    <%= link_to h(grouping.group.group_name),
+                 edit_assignment_submission_result_path(
+                   assignment.id,
+                   grouping.current_submission_used.id,
+                   grouping.current_submission_used.result) %>
+  <% end %>
+    (<%= h(grouping.accepted_students.collect{ |student| student.user_name}.join(',')) %>)
+  <%='<span class="invalid">' + t(:invalid_grouping) + '</span>' if !grouping.is_valid? %>
+  </td>
+  <% if !@details.nil? %>
+    <% assignment.rubric_criteria.each do |criterion| %>
+      <td>
+        <% if grouping.has_submission? %>
+          <% mark = grouping.current_submission_used.result.marks.find_by_markable_id(criterion.id) %>
+          <% if mark.nil? || mark.mark.nil?%>
+           -
+          <% else %>
+            <%= mark.mark %>
+          <% end %>
+        <% else %>
+          -
+        <% end %>
+      </td>
+    <% end %>
+  <% else %>
+    <td>
+      <%= link_to h(grouping.group.repository_name),
+                  repo_browser_assignment_submission_path(assignment,
+                                                          grouping) %>
+    </td>
+  <% end %>
+  
+  <td class="marking_state">
+		<% if test_script_results.nil? || test_script_results.created_at.nil?%>
+         -
+        <% else %>
+    		<%= test_script_results.created_at.strftime("%F %R") %>
+		<%end%>
+  </td>
+  <td>
+    <% if @assignment.unlimited_tokens %>
+          <%= raw( I18n.t("automated_tests.token.unlimited") ) %>
+      <% else %>
+        <%= raw( I18n.t("automated_tests.token.tokens_per_day",
+                         :tokens => @assignment.tokens_per_day) ) %>
+      <% end %>
+  </td>
+  <td>
+	<% if test_script_results.nil? || test_script_results.marks_earned.nil?%>
+     -
+    <% else %>
+		<%= test_script_results.marks_earned %>
+	<%end%>
+	
+  </td>
+
+  <%# We don't need to display the section of the group unless it is a section group 
+      assignment %>
+  <% if assignment.section_groups_only %>
+  <td>
+  	<%= h(grouping.section) %>
+  </td>
+  <% end %>
+  <td>
+	<div id="test_results" class="sub_block">
+		<% if test_script_results.nil? || test_script_results.marks_earned.nil?%>
+			No tests run yet.
+		<% else %>
+
+			<ul>
+				<% test_script = TestScript.find(test_script_results.test_script_id) %>
+				<li>
+					<%= I18n.t("automated_tests.script_name") %> <%= test_script.script_name %>
+					<ul>
+						<li><%= I18n.t("automated_tests.date_run") %> <%= test_script_results.created_at.strftime("%F %R") %></li>
+						<li><%= I18n.t("tokens.revision_used") %> <%= test_script_results.repo_revision.to_i %></li>
+
+						<% test_results = TestResult.where(:grouping_id => test_script_results.grouping_id, 
+		   	                                     :test_script_id => test_script_results.test_script_id, 
+		   	                                     :test_script_result_id => test_script_results.id) %>
+			
+						<% if test_results.nil? || test_results.length == 0 %>
+							<li>There was no feedback provided</li>
+						<% else %>
+              <% test_results.each do |t_result| %>
+  							<li><%= I18n.t("automated_tests.description") %> <%= t_result.description %></li>
+  							<li><%= I18n.t("automated_tests.marks_earned") %> <%= t_result.marks_earned %> / <%= t_result.marks_available %></li>						
+								<% if !t_result.feedback.nil? && !t_result.feedback.empty? %>
+									<li><%= I18n.t("automated_tests.feedback") %> <%= t_result.feedback %></li>
+								<% end %>
+							<% end %>
+						<% end %>
+  
+					</ul>
+				</li>
+			</ul>
+		<%end%>
+	</div>
+  </td>
+<% test_script_results = nil %>
+</tr>
+
+<% end %>
+

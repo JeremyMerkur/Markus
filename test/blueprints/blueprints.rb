@@ -316,11 +316,6 @@ TestRunResult.blueprint do
   repo_revision {0}
 end
 
-TestFile.blueprint do
-  filename {Sham.filename}
-  filetype {Sham.filetype}
-end
-
 TestResult.blueprint do
   submission {Submission.make}
   test_script {TestScript.make}

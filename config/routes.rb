@@ -97,6 +97,8 @@ Markus::Application.routes.draw do
         get 'download_script'
         get 'download_helper'
         get 'download_support'
+        get 'tokens'
+        post 'update_tokens'
       end
     end
 

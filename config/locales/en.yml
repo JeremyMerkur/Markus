@@ -672,6 +672,10 @@ en:
         success: "Successfully updated grader %{user_name}."
         error:   "Failed to update grader."
 
+    #Student Test Framework view
+    test_tab:
+        tokens:           "Tokens"        
+
     #Graders' View
     graders:
       create_new_grader:  "Create a new Grader"
@@ -1175,6 +1179,7 @@ en:
       title: "Automated Testing"
       testing_disabled: "Automated testing is not enabled for this assignment."
       automated_tests: "Test Framework"
+      tokens: "Tokens/Results"
       test_results: "Test Results"
       remove_file: "Remove"
       upload_required: "Upload<span class='required_field'>*</span>"
@@ -1263,6 +1268,21 @@ en:
         tokens_not_given_yet: "No tokens given yet"
         tokens_available: "Tokens available"
         unlimited: "Unlimited"
+    tokens:
+        testing_details: "Tokens and Automated Testing: %{short_identifier}"
+        last_test_date: "Last Testing Date"
+        tokens_remain: "Tokens Remaining"
+        test_grades: "Test Grade Breakdown"
+        test_feedback: "Test Feedback"
+        repository: "Repository"
+        revision_used: "Repository Revision"
+        group_name: "Group Name"
+        show_all: "Show All"
+        show_unmarked: "Show Unmarked"
+        show_partial: "Show Partial"
+        show_complete: "Show Complete"
+        show_released: "Show Released"
+        show_assigned_to_me: "Show Assigned to Me"
 
 #Missing Activerecord Translations for english
     datetime:

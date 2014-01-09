@@ -72,12 +72,12 @@
     <% if controller.controller_name != 'assignments' or
     (controller.controller_name == 'assignments' and
      controller.action_name != 'new' and
-     controller.action_name != 'create') %>
+     controller.action_name != 'create')%>
       <li <% if ['assignments',
                  'rubrics',
 		 'flexible_criteria',
-		 'annotation_categories',
-		 'automated_tests'].include?(controller.controller_name) %>
+		 'annotation_categories'].include?(controller.controller_name) or (controller.controller_name == 'automated_tests' and 
+		controller.action_name == 'manage') %>
 	  id="sub_menu_active"
 	  <%end%>
 	 >
@@ -97,15 +97,24 @@
          id="sub_menu_active"
       <%end%>>
          <%= link_to I18n.t("graders.graders"),
-                     assignment_graders_path(@assignment) %>
+             assignment_graders_path(@assignment) %>
       </li>
+      <li <%if controller.controller_name == 'automated_tests' and controller.action_name == 'tokens'%>
+         id="sub_menu_active"
+      <%end%>>
+         <%= link_to I18n.t("automated_tests.tokens"),
+              tokens_assignment_automated_tests_path(@assignment) %>
+      </li>
+
        <li <% if controller.controller_name == 'submissions' or
        controller.controller_name == 'results' %>
           id="sub_menu_active"
         <%end%>>
+
 	  <%= link_to I18n.t(:submissions),
 		      browse_assignment_submissions_path(@assignment) %>
       </li>
+
   <% end %>
 <% end %>
     </ul>
